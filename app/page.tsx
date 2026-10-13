@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sparkles,
   Bot,
@@ -13,7 +13,9 @@ import {
   ShieldCheck,
   Image as ImageIcon,
   Flame,
-  HelpCircle
+  HelpCircle,
+  Maximize,
+  Minimize
 } from "lucide-react";
 import CanvasPostRenderer from "@/components/CanvasPostRenderer";
 import GroqGeneratorPanel from "@/components/GroqGeneratorPanel";
@@ -28,6 +30,34 @@ import {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"ai" | "customize" | "gallery">("ai");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn("Fullscreen toggle error:", err);
+    }
+  };
 
   // Initial state based on the first attached image (Chorar @chorarr)
   const [config, setConfig] = useState<PostConfig>({
@@ -160,6 +190,24 @@ export default function Home() {
               <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
               Canvas HD Direto
             </span>
+
+            <button
+              onClick={toggleFullscreen}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white transition cursor-pointer"
+              title={isFullscreen ? "Sair da Tela Cheia (Esc)" : "Maximizar para Tela Cheia"}
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize className="w-3.5 h-3.5 text-orange-400" />
+                  <span className="hidden sm:inline">Sair de Tela Cheia</span>
+                </>
+              ) : (
+                <>
+                  <Maximize className="w-3.5 h-3.5 text-sky-400" />
+                  <span className="hidden sm:inline">Tela Cheia</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </header>

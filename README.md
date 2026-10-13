@@ -2,11 +2,18 @@
 
 > Aplicativo de alto impacto para criação de posts para redes sociais no estilo Twitter/X dark mode e quotes minimalistas, com geração de frases via **Groq SDK** e renderização direta em **Canvas HD**, sem dependência de modelos de difusão de imagem.
 
+[![GitHub Repository](https://img.shields.io/badge/GitHub-SaideLeon%2FPostCraft-181717?style=flat&logo=github)](https://github.com/SaideLeon/PostCraft.git)
+[![Next.js](https://img.shields.io/badge/Next.js-15+-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![Groq SDK](https://img.shields.io/badge/Groq%20SDK-Powered-F55036?style=flat)](https://groq.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+**Repositório Oficial:** [https://github.com/SaideLeon/PostCraft.git](https://github.com/SaideLeon/PostCraft.git)
+
 ---
 
 ## 📸 Visão Geral
 
-O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a estética dos posts virais escuros do Twitter/X e Instagram, como as páginas de referência:
+O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a estética dos posts virais escuros do Twitter/X e Instagram, baseando-se nos modelos de referência:
 - **Chorar (`@chorarr`)**: Frases melancólicas, desabafos e reflexões com silhuetas em preto e branco.
 - **Ordem Masculina (`@_ordemmasculina_`)**: Mensagens diretas sobre estoicismo, maturidade, respeito e lealdade com selo verificado azul.
 - **Socialmente Sagaz (`@socialmentesagaz`)**: Citações marcantes e flertes inteligentes centralizados em tipografia serifada.
@@ -15,10 +22,14 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
 
 ## ✨ Principais Funcionalidades
 
-### 1. 🤖 Geração de Textos com Groq SDK Exclusivo
+### 1. 🖥️ Modo Tela Cheia (Fullscreen)
+- Botão interativo de **Tela Cheia** na barra de navegação superior para maximizar o app e aproveitar 100% da área do monitor.
+- Permite alternar com um clique ou através da tecla `Esc`, adaptando a interface para visualização imersiva.
+
+### 2. 🤖 Geração de Textos com Groq SDK Exclusivo
 - Integrado diretamente através da biblioteca oficial `groq-sdk`.
 - Suporte aos modelos da Groq:
-  - `openai/gpt-oss-120b` (Modelo padrão)
+  - `openai/gpt-oss-120b` (Modelo padrão recomendado)
   - `llama-3.3-70b-versatile`
   - `llama-3.1-8b-instant`
   - `mixtral-8x7b-32768`
@@ -27,7 +38,7 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
 - Acervo embutido com mais de 20 frases clássicas prontas para uso em 1 clique, sem necessidade imediata de chave de API.
 - Campo seguro no navegador para inserir chave própria `GROQ_API_KEY` (salva localmente via `localStorage`).
 
-### 2. 🎨 Renderização Direta em Imagem (Zero IA de Imagem)
+### 3. 🎨 Renderização Direta em Imagem (Zero IA de Imagem)
 - Não utiliza modelos de difusão de imagem (como Imagen ou Stable Diffusion), eliminando artefatos, borrões ou distorções no texto.
 - Motor de renderização direta em **HTML5 Canvas 1080p**:
   - **1:1** — Feed Quadrado do Instagram (1080×1080 px).
@@ -36,21 +47,21 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
 - Download instantâneo em arquivo **PNG em alta resolução**.
 - Botão **Copiar Imagem** para a área de transferência (permite colar direto no WhatsApp Web, Instagram ou Canva).
 
-### 3. 🖼️ Enquadramento Perfeito da Foto de Perfil no Círculo
+### 4. 🖼️ Enquadramento Perfeito da Foto de Perfil no Círculo
 - Upload de qualquer foto pessoal ou logotipo do dispositivo (PNG, JPG, SVG, WebP).
 - **Proporção Cover Automática**: Não achata nem estica imagens verticais ou horizontais.
-- **Zoom / Escala do Avatar**: Controle deslizante de 50% até 250% (com atalhos de -10% e +10%).
+- **Zoom / Escala da Imagem**: Controle deslizante de 50% até 250% (com atalhos rápidos de -10% e +10%).
 - **Ajuste Horizontal (Pan X)**: Mova a imagem para a esquerda ou direita (-60px a +60px).
 - **Ajuste Vertical (Pan Y)**: Mova a imagem para cima ou para baixo (-60px a +60px).
 - Botão rápido de **Resetar Enquadramento**.
 
-### 4. 🎛️ Controles Avançados de Tipografia e Layout
+### 5. 🎛️ Controles Avançados de Tipografia e Layout
 - **Redimensionamento da Figura**: Altere o diâmetro do avatar de 60px a 160px.
 - **Redimensionamento dos Nomes**:
   - Nome de exibição: 22px a 54px (com selo de verificado proporcional).
   - Nome de usuário (`@`): 18px a 44px.
 - **Espaçamento entre Cabeçalho e Texto**: Ajuste a distância vertical entre o perfil e a frase (20px a 180px).
-- **Reposicionamento do Bloco Completo**: Mova todo o conjunto (avatar + nomes + selo + texto) simultaneamente para cima ou para baixo (-300px a +300px).
+- **Reposicionamento do Bloco Completo**: Mova todo o conjunto (avatar + nomes + selo + texto) simultaneamente para cima ou para baixo (-300px a +300px) com botões rápidos de Subir (-30px), Descer (+30px) e Centralizar.
 - **Rolagem Independente Desacoplada**: A coluna de configurações rola separadamente sem movimentar o Canvas da direita.
 - **Tipografias Disponíveis**:
   - *Inter* (Sans-serif moderno tipo Twitter/X)
@@ -68,6 +79,7 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
 - **Ícones**: [`lucide-react`](https://lucide.dev/)
 - **Efeitos de Celebração**: [`canvas-confetti`](https://www.npmjs.com/package/canvas-confetti)
 - **Renderização Gráfica**: HTML5 Canvas API nativa 2D
+- **Fullscreen API**: HTML5 Fullscreen API
 
 ---
 
@@ -77,9 +89,10 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
 - Node.js versão 18 ou superior.
 - NPM, Yarn ou PNPM instalado.
 
-### 1. Clonar ou Acessar o Diretório
+### 1. Clonar o Repositório
 ```bash
-cd ai-studio-applet
+git clone https://github.com/SaideLeon/PostCraft.git
+cd PostCraft
 ```
 
 ### 2. Instalar as Dependências
@@ -110,20 +123,28 @@ npm start
 
 ## 📖 Como Usar
 
-1. **Escolha um Modelo Inicial**: Clique em uma das abas de predefinições rápidas (*Chorar*, *Ordem Masculina*, *Socialmente Sagaz*) ou selecione um post do catálogo na aba **Acervo dos Prints**.
-2. **Gere Frases com IA**:
+1. **Maximize o App**: Clique no botão **Tela Cheia** na barra de navegação para obter a melhor experiência de edição.
+2. **Escolha um Modelo Inicial**: Clique em uma das abas de predefinições rápidas (*Chorar*, *Ordem Masculina*, *Socialmente Sagaz*) ou selecione um post do catálogo na aba **Acervo dos Prints**.
+3. **Gere Frases com IA**:
    - Vá para a aba **Gerador Groq AI**.
    - Escolha o tom (*Melancolia*, *Masculinidade*, *Conquista*, *Indiretas* ou *Foco*).
    - Digite um tema opcional (ex: "superação e foco").
    - Clique em **Gerar Novos Posts com Groq**.
-3. **Personalize a Figura & Layout**:
+4. **Personalize a Figura & Layout**:
    - Vá para a aba **Personalizar Post**.
    - Envie sua foto de perfil e use os controles de **Zoom e Pan (X/Y)** para centralizá-la perfeitamente no círculo.
    - Ajuste o tamanho da figura, o tamanho dos nomes e o espaçamento com o texto.
    - Use o controle de **Posição Vertical** para subir ou descer todo o post de uma vez.
-4. **Baixe ou Copie**:
+5. **Baixe ou Copie**:
    - Clique em **Baixar Imagem PNG** para salvar o arquivo em 1080p.
    - Ou clique em **Copiar Imagem** para colar diretamente no WhatsApp Web, Instagram ou qualquer aplicativo.
+
+---
+
+## 🌐 Repositório no GitHub
+
+Para contribuir, abrir issues ou acompanhar atualizações:
+👉 **[https://github.com/SaideLeon/PostCraft.git](https://github.com/SaideLeon/PostCraft.git)**
 
 ---
 
