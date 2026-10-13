@@ -1,0 +1,6 @@
+{
+  "name": "PostCraft - Gerador de Posts Dark Aesthetic",
+  "description": "Crie posts e quotes no estilo Twitter/X dark e frases de impacto prontos para o Instagram e redes sociais usando Groq AI e exportação direta em imagem HD.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
