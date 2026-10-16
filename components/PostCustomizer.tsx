@@ -575,6 +575,154 @@ export default function PostCustomizer({
             <span>Vinheta Dark Suave</span>
           </label>
         </div>
+
+        {/* Verified Badge Resizing & Repositioning Panel (when enabled) */}
+        {config.isVerified && (
+          <div className="p-3 rounded-xl bg-zinc-900/70 border border-sky-500/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-sky-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Ajustes do Selo Verificado Azul:
+              </span>
+              <button
+                onClick={() => onChange({ badgeSize: 14, badgeOffsetX: 0, badgeOffsetY: 0 })}
+                className="text-[10px] text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
+              >
+                Resetar Selo
+              </button>
+            </div>
+
+            {/* Badge Size */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-zinc-400">Tamanho do Selo:</span>
+                <span className="text-sky-300 font-mono font-medium">{config.badgeSize || 14}px</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-zinc-500">8px</span>
+                <input
+                  type="range"
+                  min={8}
+                  max={26}
+                  step={1}
+                  value={config.badgeSize || 14}
+                  onChange={(e) => onChange({ badgeSize: Number(e.target.value) })}
+                  className="flex-1 accent-sky-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
+                />
+                <span className="text-[10px] text-zinc-500">26px</span>
+              </div>
+            </div>
+
+            {/* Badge Offset X & Y */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-zinc-400">Posição Horizontal (X):</span>
+                  <span className="text-zinc-300 font-mono">{config.badgeOffsetX || 0}px</span>
+                </div>
+                <input
+                  type="range"
+                  min={-30}
+                  max={30}
+                  step={1}
+                  value={config.badgeOffsetX || 0}
+                  onChange={(e) => onChange({ badgeOffsetX: Number(e.target.value) })}
+                  className="w-full accent-sky-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-zinc-400">Posição Vertical (Y):</span>
+                  <span className="text-zinc-300 font-mono">{config.badgeOffsetY || 0}px</span>
+                </div>
+                <input
+                  type="range"
+                  min={-30}
+                  max={30}
+                  step={1}
+                  value={config.badgeOffsetY || 0}
+                  onChange={(e) => onChange({ badgeOffsetY: Number(e.target.value) })}
+                  className="w-full accent-sky-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Options Dots Resizing & Repositioning Panel (when enabled) */}
+        {config.showDots && (
+          <div className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-zinc-300 flex items-center gap-1.5">
+                <MoreHorizontal className="w-3.5 h-3.5 text-zinc-400" />
+                Ajustes do Ícone de Opções (•••):
+              </span>
+              <button
+                onClick={() => onChange({ dotsSize: 4, dotsOffsetX: 0, dotsOffsetY: 0 })}
+                className="text-[10px] text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
+              >
+                Resetar Ícone
+              </button>
+            </div>
+
+            {/* Dots Size */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-zinc-400">Tamanho dos Pontos:</span>
+                <span className="text-zinc-300 font-mono font-medium">{config.dotsSize || 4}px</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-zinc-500">2px</span>
+                <input
+                  type="range"
+                  min={2}
+                  max={8}
+                  step={0.5}
+                  value={config.dotsSize || 4}
+                  onChange={(e) => onChange({ dotsSize: Number(e.target.value) })}
+                  className="flex-1 accent-sky-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
+                />
+                <span className="text-[10px] text-zinc-500">8px</span>
+              </div>
+            </div>
+
+            {/* Dots Offset X & Y */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-zinc-400">Posição Horizontal (X):</span>
+                  <span className="text-zinc-300 font-mono">{config.dotsOffsetX || 0}px</span>
+                </div>
+                <input
+                  type="range"
+                  min={-60}
+                  max={60}
+                  step={2}
+                  value={config.dotsOffsetX || 0}
+                  onChange={(e) => onChange({ dotsOffsetX: Number(e.target.value) })}
+                  className="w-full accent-sky-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-zinc-400">Posição Vertical (Y):</span>
+                  <span className="text-zinc-300 font-mono">{config.dotsOffsetY || 0}px</span>
+                </div>
+                <input
+                  type="range"
+                  min={-60}
+                  max={60}
+                  step={2}
+                  value={config.dotsOffsetY || 0}
+                  onChange={(e) => onChange({ dotsOffsetY: Number(e.target.value) })}
+                  className="w-full accent-sky-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 6. Typography & Font Size */}

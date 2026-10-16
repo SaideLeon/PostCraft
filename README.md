@@ -60,6 +60,8 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
 - **Redimensionamento dos Nomes**:
   - Nome de exibição: 22px a 54px (com selo de verificado proporcional).
   - Nome de usuário (`@`): 18px a 44px.
+- **Ajustes do Selo Verificado Azul**: Redimensione o raio do selo de 8px a 26px e ajuste sua posição horizontal e vertical (X/Y) ao lado do nome.
+- **Ajustes do Ícone de Opções (•••)**: Redimensione o diâmetro dos pontos de 2px a 8px e reposicione livremente nos eixos horizontal e vertical (X/Y).
 - **Espaçamento entre Cabeçalho e Texto**: Ajuste a distância vertical entre o perfil e a frase (20px a 180px).
 - **Reposicionamento do Bloco Completo**: Mova todo o conjunto (avatar + nomes + selo + texto) simultaneamente para cima ou para baixo (-300px a +300px) com botões rápidos de Subir (-30px), Descer (+30px) e Centralizar.
 - **Rolagem Independente Desacoplada**: A coluna de configurações rola separadamente sem movimentar o Canvas da direita.

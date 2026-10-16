@@ -86,7 +86,13 @@ export default function Home() {
     verticalOffset: 0,
     avatarZoom: 1.0,
     avatarOffsetX: 0,
-    avatarOffsetY: 0
+    avatarOffsetY: 0,
+    badgeSize: 14,
+    badgeOffsetX: 0,
+    badgeOffsetY: 0,
+    dotsSize: 4,
+    dotsOffsetX: 0,
+    dotsOffsetY: 0
   });
 
   const handleUpdateConfig = (updated: Partial<PostConfig>) => {

@@ -114,12 +114,12 @@ function getDimensions(aspectRatio: string) {
   const drawThreeDots = (
     ctx: CanvasRenderingContext2D,
     x: number,
-    y: number
+    y: number,
+    dotRadius: number = 4,
+    gap: number = 12
   ) => {
     ctx.save();
     ctx.fillStyle = "#536471";
-    const dotRadius = 4;
-    const gap = 12;
     for (let i = -1; i <= 1; i++) {
       ctx.beginPath();
       ctx.arc(x + i * gap, y, dotRadius, 0, Math.PI * 2);
@@ -325,10 +325,13 @@ function getDimensions(aspectRatio: string) {
       const nameMetrics = ctx.measureText(config.name);
       const badgeOffset = nameMetrics.width + Math.max(12, Math.round(nameFontSize * 0.35));
 
-      // Verified Badge scaled with nameFontSize
+      // Verified Badge scaled with nameFontSize & user customization
       if (config.isVerified) {
-        const badgeRadius = Math.max(10, Math.round(nameFontSize * 0.38));
-        drawVerifiedBadge(ctx, textStartX + badgeOffset, nameY - nameFontSize * 0.3, badgeRadius);
+        const defaultBadgeRadius = Math.max(10, Math.round(nameFontSize * 0.38));
+        const badgeRadius = typeof config.badgeSize === "number" ? config.badgeSize : defaultBadgeRadius;
+        const badgeX = textStartX + badgeOffset + (config.badgeOffsetX || 0);
+        const badgeY = nameY - nameFontSize * 0.3 + (config.badgeOffsetY || 0);
+        drawVerifiedBadge(ctx, badgeX, badgeY, badgeRadius);
       }
 
       // Handle (@username)
@@ -339,7 +342,13 @@ function getDimensions(aspectRatio: string) {
 
       // Top right dots
       if (config.showDots) {
-        drawThreeDots(ctx, startX + contentMaxWidth - 20, startY + Math.min(avatarRadius, 40));
+        const dotsRadius = typeof config.dotsSize === "number" ? config.dotsSize : 4;
+        const dotsGap = Math.max(8, Math.round(dotsRadius * 2.8));
+        const dotsBaseX = startX + contentMaxWidth - 20;
+        const dotsBaseY = startY + Math.min(avatarRadius, 40);
+        const dotsX = dotsBaseX + (config.dotsOffsetX || 0);
+        const dotsY = dotsBaseY + (config.dotsOffsetY || 0);
+        drawThreeDots(ctx, dotsX, dotsY, dotsRadius, dotsGap);
       }
 
       // 3. Post Main Text

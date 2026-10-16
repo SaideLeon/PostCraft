@@ -25,6 +25,12 @@ export interface PostConfig {
   avatarZoom?: number; // Zoom/scale factor of avatar image inside circle (e.g. 0.5 to 3.0, default 1.0)
   avatarOffsetX?: number; // Horizontal pan/shift of avatar inside circle in pixels (e.g. -100 to 100, default 0)
   avatarOffsetY?: number; // Vertical pan/shift of avatar inside circle in pixels (e.g. -100 to 100, default 0)
+  badgeSize?: number; // Radius/size of the verified blue checkmark badge in pixels (e.g. 8 to 28, default 14)
+  badgeOffsetX?: number; // Horizontal offset of verified badge in pixels (e.g. -40 to 40, default 0)
+  badgeOffsetY?: number; // Vertical offset of verified badge in pixels (e.g. -40 to 40, default 0)
+  dotsSize?: number; // Size/radius of options dots in pixels (e.g. 2 to 10, default 4)
+  dotsOffsetX?: number; // Horizontal offset of options dots in pixels (e.g. -80 to 80, default 0)
+  dotsOffsetY?: number; // Vertical offset of options dots in pixels (e.g. -80 to 80, default 0)
 }
 
 // Crisp Vector Avatars as Base64/SVG Data URIs so they load reliably offline & on canvas
