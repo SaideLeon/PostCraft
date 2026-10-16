@@ -71,13 +71,17 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
   - *Plus Jakarta Sans* (Display bold)
   - *JetBrains Mono* (Estilo minimalista monospace)
 
-### 6. 📱 Divisão Vertical de Tela Mobile & Rolagem Independente
+### 6. 📱 Divisão Vertical de Tela Mobile, Scroll Interno & Redimensionamento Livre
 - **Divisão de Cima para Baixo (Vertical Split no Mobile)**:
-  - **Por Cima (Fixo)**: A pré-visualização ao vivo do post renderizado no Canvas fica firmemente travada no topo da tela, sem nunca sair do campo de visão.
+  - **Por Cima (Fixo com Rolagem Interna Opcional)**: A pré-visualização ao vivo do post renderizado no Canvas fica firmemente travada no topo da tela, sem nunca sair do campo de visão.
   - **Por Baixo (Scroll Independente)**: Todos os elementos de configuração (abas, presets, sliders de ajuste, textos, modelos, etc.) rolam em um container isolado com aceleração por hardware e momentum scrolling nativo.
   - **Rolagem 100% Desacoplada**: Rolar qualquer elemento de pré-definição ou configuração nunca move, treme ou afeta a pré-visualização do post acima.
-- **Seletor de Altura da Prévia (Split Ratio)**:
-  - Controles diretos na barra divisória para ajustar a proporção da tela (**30%**, **40%**, **50%**), dando mais espaço para as configurações ou mais destaque para o post conforme a necessidade do momento.
+- **Scroll Interno da Imagem (Modo Scroll Real)**:
+  - Botão de alternância instantânea entre **Encaixar** (reduz o post proporcionalmente para caber inteiro no widget) e **Scroll Real** (exibe o post em largura cheia mantendo a proporção real nativa e permitindo rolar verticalmente dentro da janela fixa para inspecionar topo, meio e base).
+- **Redimensionador Livre do Widget (Arraste Interativo)**:
+  - **Alça de Arraste Touch & Mouse**: Toque e arraste a barra divisória para cima ou para baixo para redimensionar a altura da pré-visualização livremente em tempo real (de 170px até 75% da altura da tela).
+  - **Botão "📐 Proporção Real"**: Calcula e ajusta instantaneamente a altura exata do widget para a proporção nativa do formato ativo (1:1 Feed, 4:5 Retrato ou 9:16 Stories), eliminando barras pretas vazias.
+  - **Presets Rápidos**: Botões **P** (220px compacto), **M** (320px equilibrado) e **G** (460px expandido).
 - **Botões Touch Stepper (- e +)**: Todos os sliders incluem botões dedicados de incremento e decremento para precisão milimétrica em telas touch, eliminando erros de toque.
 - **Categorização Modular no Editor**: Divisão em categorias rápidas (*Formato & Tema*, *Foto & Perfil*, *Frase & Texto*, *Selos & Ícones*, *Todas*) que facilitam o acesso direto aos controles.
 - **Integração com Web Share API**: Botão **Compartilhar** nativo para postar ou enviar a imagem direto no Instagram, WhatsApp, Twitter ou salvar no dispositivo.

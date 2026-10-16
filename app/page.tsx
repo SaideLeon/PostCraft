@@ -22,7 +22,10 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
-  Layout
+  Layout,
+  GripHorizontal,
+  ArrowUpDown,
+  Scan
 } from "lucide-react";
 import CanvasPostRenderer, { CanvasPostRendererRef } from "@/components/CanvasPostRenderer";
 import GroqGeneratorPanel from "@/components/GroqGeneratorPanel";
@@ -39,8 +42,12 @@ export default function Home() {
   // Active configuration tab (Personalizar, Groq IA, Acervo)
   const [activeTab, setActiveTab] = useState<"customize" | "ai" | "gallery">("customize");
   
-  // Mobile Top Preview Height: "32vh" (compact), "38vh" (standard), "48vh" (expanded)
-  const [mobilePreviewHeight, setMobilePreviewHeight] = useState<"32vh" | "38vh" | "48vh">("38vh");
+  // Mobile Top Preview Height (resizable widget in pixels, default 310px)
+  const [mobilePreviewHeightPx, setMobilePreviewHeightPx] = useState<number>(310);
+  const [isDraggingDivider, setIsDraggingDivider] = useState(false);
+  const [previewScrollMode, setPreviewScrollMode] = useState<"fit" | "scroll">("fit");
+  const dragStartYRef = useRef<number>(0);
+  const dragStartHeightRef = useRef<number>(310);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const canvasPostRef = useRef<CanvasPostRendererRef>(null);
@@ -175,6 +182,71 @@ export default function Home() {
         randomPost.author,
         randomPost.handle
       );
+    }
+  };
+
+  const handleTouchStartDivider = (e: React.TouchEvent) => {
+    dragStartYRef.current = e.touches[0].clientY;
+    dragStartHeightRef.current = mobilePreviewHeightPx;
+    setIsDraggingDivider(true);
+  };
+
+  const handleTouchMoveDivider = (e: React.TouchEvent) => {
+    if (!dragStartYRef.current) return;
+    const deltaY = e.touches[0].clientY - dragStartYRef.current;
+    const maxHeight = typeof window !== "undefined" ? Math.round(window.innerHeight * 0.74) : 600;
+    const newHeight = Math.min(Math.max(dragStartHeightRef.current + deltaY, 170), maxHeight);
+    setMobilePreviewHeightPx(Math.round(newHeight));
+  };
+
+  const handleTouchEndDivider = () => {
+    setIsDraggingDivider(false);
+    dragStartYRef.current = 0;
+  };
+
+  const handleMouseDownDivider = (e: React.MouseEvent) => {
+    dragStartYRef.current = e.clientY;
+    dragStartHeightRef.current = mobilePreviewHeightPx;
+    setIsDraggingDivider(true);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - dragStartYRef.current;
+      const maxHeight = typeof window !== "undefined" ? Math.round(window.innerHeight * 0.74) : 600;
+      const newHeight = Math.min(Math.max(dragStartHeightRef.current + deltaY, 170), maxHeight);
+      setMobilePreviewHeightPx(Math.round(newHeight));
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingDivider(false);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleSetRealProportion = () => {
+    if (typeof window === "undefined") return;
+    const availableWidth = Math.min(window.innerWidth - 16, 420);
+    const topBarOffset = 42;
+    let targetHeight = 310;
+
+    if (config.aspectRatio === "1:1") {
+      targetHeight = availableWidth + topBarOffset;
+    } else if (config.aspectRatio === "4:5") {
+      targetHeight = Math.round(availableWidth * 1.25) + topBarOffset;
+    } else if (config.aspectRatio === "9:16") {
+      targetHeight = Math.round(availableWidth * (16 / 9)) + topBarOffset;
+    }
+
+    const maxHeight = Math.round(window.innerHeight * 0.72);
+    if (targetHeight > maxHeight) {
+      setMobilePreviewHeightPx(maxHeight);
+      setPreviewScrollMode("scroll"); // If 9:16 exceeds screen max height, enable internal scroll
+    } else {
+      setMobilePreviewHeightPx(targetHeight);
+      setPreviewScrollMode("fit");
     }
   };
 
@@ -373,70 +445,112 @@ export default function Home() {
         {/* PARTE DE CIMA: PRÉ-VISUALIZAÇÃO (COMPLETAMENTE FIXA, NUNCA ROLA QUANDO AS CONFIGURAÇÕES ROLAM) */}
         <section
           aria-label="Pré-visualização do Post (Fixa no Topo)"
-          className="shrink-0 w-full bg-black border-b border-zinc-800 z-20 shadow-xl flex flex-col overflow-hidden transition-[height] duration-150"
-          style={{ height: mobilePreviewHeight }}
+          className={`shrink-0 w-full bg-black border-b border-zinc-800 z-20 shadow-xl flex flex-col overflow-hidden ${
+            isDraggingDivider ? "select-none" : "transition-[height] duration-150"
+          }`}
+          style={{ height: `${mobilePreviewHeightPx}px` }}
         >
           <CanvasPostRenderer
             ref={canvasPostRef}
             config={config}
             compact={true}
+            scrollMode={previewScrollMode}
+            onToggleScrollMode={setPreviewScrollMode}
             onRefreshPhrase={handleRandomizeFromLibrary}
             onChangeAspectRatio={(ratio) => handleUpdateConfig({ aspectRatio: ratio })}
           />
         </section>
 
-        {/* BARRA DIVISÓRIA COM CONTROLES DE ALTURA DA PRÉVIA & MODELOS RÁPIDOS */}
-        <div className="shrink-0 bg-zinc-950 border-b border-zinc-800/90 px-3 py-1.5 flex items-center justify-between text-xs z-10 shadow-sm">
-          {/* Quick preset theme pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 max-w-[62%] sm:max-w-[70%]">
-            <span className="text-[10px] font-semibold text-zinc-400 shrink-0">Modelos:</span>
-            {PRESET_THEMES.map((theme) => (
+        {/* BARRA DIVISÓRIA COM REDIMENSIONADOR DO WIDGET & PRESETS DE PROPORÇÃO REAL */}
+        <div className="shrink-0 bg-zinc-950 border-b border-zinc-800/90 flex flex-col text-xs z-10 shadow-sm select-none">
+          {/* Linha 1: Temas Rápidos e Botão de Proporção Real */}
+          <div className="px-2.5 py-1.5 flex items-center justify-between gap-1.5 border-b border-zinc-900/80">
+            {/* Quick preset theme pills */}
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5 max-w-[48%] xs:max-w-[54%]">
+              <span className="text-[10px] font-semibold text-zinc-500 shrink-0">Tema:</span>
+              {PRESET_THEMES.map((theme) => (
+                <button
+                  key={theme.id}
+                  onClick={() => handleApplyPresetTheme(theme.id)}
+                  className="px-1.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-[10px] font-medium text-zinc-300 hover:text-white shrink-0 active:scale-95 transition cursor-pointer"
+                >
+                  {theme.name.split(" ")[0]}
+                </button>
+              ))}
+            </div>
+
+            {/* Smart Size & Aspect Ratio Controls */}
+            <div className="flex items-center gap-1 shrink-0">
               <button
-                key={theme.id}
-                onClick={() => handleApplyPresetTheme(theme.id)}
-                className="px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-[10px] font-medium text-zinc-300 hover:text-white shrink-0 active:scale-95 transition cursor-pointer"
+                onClick={handleSetRealProportion}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-400 font-semibold text-[10px] transition cursor-pointer shadow-sm active:scale-95"
+                title="Ajustar o widget para mostrar exatamente a proporção real da imagem sem faixas pretas"
               >
-                {theme.name.split(" ")[0]}
+                <span>📐 Proporção Real</span>
               </button>
-            ))}
+
+              <div className="flex items-center bg-zinc-900 p-0.5 rounded-lg border border-zinc-800">
+                <button
+                  onClick={() => {
+                    setMobilePreviewHeightPx(220);
+                    setPreviewScrollMode("fit");
+                  }}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition cursor-pointer ${
+                    mobilePreviewHeightPx <= 240
+                      ? "bg-zinc-800 text-sky-400 font-bold shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                  title="Widget Compacto (220px)"
+                >
+                  P
+                </button>
+                <button
+                  onClick={() => {
+                    setMobilePreviewHeightPx(320);
+                    setPreviewScrollMode("fit");
+                  }}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition cursor-pointer ${
+                    mobilePreviewHeightPx > 240 && mobilePreviewHeightPx <= 380
+                      ? "bg-zinc-800 text-sky-400 font-bold shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                  title="Widget Médio (320px)"
+                >
+                  M
+                </button>
+                <button
+                  onClick={() => {
+                    setMobilePreviewHeightPx(460);
+                  }}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition cursor-pointer ${
+                    mobilePreviewHeightPx > 380
+                      ? "bg-zinc-800 text-sky-400 font-bold shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                  title="Widget Grande (460px)"
+                >
+                  G
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Height Adjuster Controls for the Top Preview: 32vh (30%), 38vh (40%), 48vh (50%) */}
-          <div className="flex items-center gap-1 shrink-0 bg-zinc-900 p-0.5 rounded-lg border border-zinc-800">
-            <span className="text-[9px] text-zinc-500 font-medium px-1 hidden xs:inline">Prévia:</span>
-            <button
-              onClick={() => setMobilePreviewHeight("32vh")}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition cursor-pointer ${
-                mobilePreviewHeight === "32vh"
-                  ? "bg-zinc-800 text-sky-400 font-bold shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-              title="Prévia Compacta (Mais espaço para as configurações)"
-            >
-              30%
-            </button>
-            <button
-              onClick={() => setMobilePreviewHeight("38vh")}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition cursor-pointer ${
-                mobilePreviewHeight === "38vh"
-                  ? "bg-zinc-800 text-sky-400 font-bold shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-              title="Prévia Equilibrada"
-            >
-              40%
-            </button>
-            <button
-              onClick={() => setMobilePreviewHeight("48vh")}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition cursor-pointer ${
-                mobilePreviewHeight === "48vh"
-                  ? "bg-zinc-800 text-sky-400 font-bold shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-              title="Prévia Grande"
-            >
-              50%
-            </button>
+          {/* Linha 2: Alça de Arraste Interativa para Redimensionar Livremente a Altura do Widget */}
+          <div
+            onTouchStart={handleTouchStartDivider}
+            onTouchMove={handleTouchMoveDivider}
+            onTouchEnd={handleTouchEndDivider}
+            onMouseDown={handleMouseDownDivider}
+            className="w-full py-1 flex items-center justify-center cursor-row-resize hover:bg-zinc-900/60 active:bg-zinc-850 transition touch-none group"
+            title="Arraste para cima ou para baixo para redimensionar a altura do widget livremente"
+          >
+            <div className="flex items-center gap-1.5">
+              <div className="w-8 h-1 rounded-full bg-zinc-700 group-hover:bg-sky-400 group-active:bg-sky-400 transition" />
+              <span className="text-[9px] font-mono text-zinc-500 group-hover:text-zinc-300">
+                {mobilePreviewHeightPx}px • Arraste para redimensionar
+              </span>
+              <div className="w-8 h-1 rounded-full bg-zinc-700 group-hover:bg-sky-400 group-active:bg-sky-400 transition" />
+            </div>
           </div>
         </div>
 

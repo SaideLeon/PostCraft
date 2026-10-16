@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Download, Copy, Check, Sparkles, RefreshCw, ZoomIn, Share2, Maximize2, X, Square, Smartphone } from "lucide-react";
+import { Download, Copy, Check, Sparkles, RefreshCw, ZoomIn, Share2, Maximize2, X, Square, Smartphone, ArrowUpDown, Scan } from "lucide-react";
 import confetti from "canvas-confetti";
 import { PostConfig } from "@/lib/presets";
 
@@ -16,6 +16,8 @@ interface CanvasPostRendererProps {
   onRefreshPhrase?: () => void;
   onChangeAspectRatio?: (ratio: "1:1" | "4:5" | "9:16") => void;
   compact?: boolean;
+  scrollMode?: "fit" | "scroll";
+  onToggleScrollMode?: (mode: "fit" | "scroll") => void;
 }
 
 // Dimensions based on aspect ratio
@@ -35,7 +37,7 @@ export const CanvasPostRenderer = React.forwardRef<
   CanvasPostRendererRef,
   CanvasPostRendererProps
 >(function CanvasPostRenderer(
-  { config, onRefreshPhrase, onChangeAspectRatio, compact = false },
+  { config, onRefreshPhrase, onChangeAspectRatio, compact = false, scrollMode, onToggleScrollMode },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -510,123 +512,197 @@ export const CanvasPostRenderer = React.forwardRef<
       ? "aspect-[9/16]"
       : "aspect-square";
 
+  const [internalScrollMode, setInternalScrollMode] = useState<"fit" | "scroll">(scrollMode || "fit");
+
+  useEffect(() => {
+    if (scrollMode) {
+      setInternalScrollMode(scrollMode);
+    }
+  }, [scrollMode]);
+
+  const handleToggleScroll = (newMode: "fit" | "scroll") => {
+    setInternalScrollMode(newMode);
+    if (onToggleScrollMode) {
+      onToggleScrollMode(newMode);
+    }
+  };
+
   if (compact) {
     return (
       <div className="flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden select-none">
         {/* Compact Top Action Bar */}
-        <div className="flex items-center justify-between w-full px-2 py-1 gap-1.5 shrink-0 border-b border-zinc-800/80 bg-zinc-950/80">
+        <div className="flex items-center justify-between w-full px-2 py-1 gap-1 shrink-0 border-b border-zinc-800/80 bg-zinc-950/90 text-xs">
           {/* Quick Aspect Ratio Switcher */}
-          {onChangeAspectRatio ? (
-            <div className="flex items-center gap-0.5 p-0.5 bg-zinc-900 border border-zinc-800 rounded-lg">
-              <button
-                type="button"
-                onClick={() => onChangeAspectRatio("1:1")}
-                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
-                  config.aspectRatio === "1:1"
-                    ? "bg-zinc-800 text-sky-400 shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                1:1
-              </button>
-              <button
-                type="button"
-                onClick={() => onChangeAspectRatio("4:5")}
-                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
-                  config.aspectRatio === "4:5"
-                    ? "bg-zinc-800 text-sky-400 shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                4:5
-              </button>
-              <button
-                type="button"
-                onClick={() => onChangeAspectRatio("9:16")}
-                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
-                  config.aspectRatio === "9:16"
-                    ? "bg-zinc-800 text-sky-400 shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                9:16
-              </button>
-            </div>
-          ) : (
-            <span className="text-[10px] font-mono text-zinc-400">{config.aspectRatio}</span>
-          )}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+            {onChangeAspectRatio ? (
+              <div className="flex items-center gap-0.5 p-0.5 bg-zinc-900 border border-zinc-800 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => onChangeAspectRatio("1:1")}
+                  className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
+                    config.aspectRatio === "1:1"
+                      ? "bg-zinc-800 text-sky-400 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  1:1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChangeAspectRatio("4:5")}
+                  className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
+                    config.aspectRatio === "4:5"
+                      ? "bg-zinc-800 text-sky-400 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  4:5
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChangeAspectRatio("9:16")}
+                  className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
+                    config.aspectRatio === "9:16"
+                      ? "bg-zinc-800 text-sky-400 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  9:16
+                </button>
+              </div>
+            ) : (
+              <span className="text-[10px] font-mono text-zinc-400">{config.aspectRatio}</span>
+            )}
+
+            {/* Toggle between Fit and Internal Scroll (Proporção Real) */}
+            <button
+              type="button"
+              onClick={() => handleToggleScroll(internalScrollMode === "fit" ? "scroll" : "fit")}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium border transition cursor-pointer shrink-0 ${
+                internalScrollMode === "scroll"
+                  ? "bg-sky-500/20 text-sky-300 border-sky-500/40 font-semibold"
+                  : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white"
+              }`}
+              title={
+                internalScrollMode === "scroll"
+                  ? "Modo atual: Rolagem Interna (Tamanho Real). Toque para Encaixar."
+                  : "Modo atual: Encaixar. Toque para Rolagem Interna (Tamanho Real)."
+              }
+            >
+              {internalScrollMode === "scroll" ? (
+                <>
+                  <ArrowUpDown className="w-3 h-3 text-sky-400" />
+                  <span>Scroll Real</span>
+                </>
+              ) : (
+                <>
+                  <Scan className="w-3 h-3 text-zinc-400" />
+                  <span>Encaixar</span>
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Action Buttons: Baixar, Copiar, Compartilhar, Zoom */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={handleDownload}
               disabled={isExporting}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-semibold text-[11px] shadow-sm transition active:scale-95 cursor-pointer min-h-[30px]"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-semibold text-[10px] shadow-sm transition active:scale-95 cursor-pointer min-h-[28px]"
               title="Baixar imagem em PNG"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Baixar</span>
+              <Download className="w-3 h-3" />
+              <span>PNG</span>
             </button>
 
             <button
               type="button"
               onClick={handleCopyImage}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+              className="p-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white transition active:scale-95 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
               title="Copiar imagem"
             >
-              {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
             </button>
 
             <button
               type="button"
               onClick={handleShare}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-sky-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+              className="p-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-sky-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
               title="Compartilhar no WhatsApp/Instagram"
             >
-              {isShared ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+              {isShared ? <Check className="w-3 h-3 text-emerald-400" /> : <Share2 className="w-3 h-3" />}
             </button>
 
             <button
               type="button"
               onClick={handleOpenZoom}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+              className="p-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
               title="Inspecionar em Tela Cheia"
             >
-              <ZoomIn className="w-3.5 h-3.5" />
+              <ZoomIn className="w-3 h-3" />
             </button>
 
             {onRefreshPhrase && (
               <button
                 type="button"
                 onClick={onRefreshPhrase}
-                className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-orange-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+                className="p-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-orange-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
                 title="Sortear outra frase"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3 h-3" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Centered Canvas Scaled to Fit Available Space without overflowing */}
-        <div className="flex-1 w-full min-h-0 flex items-center justify-center p-1 sm:p-1.5 overflow-hidden">
-          <div className="relative flex items-center justify-center max-w-full max-h-full bg-black rounded-xl overflow-hidden shadow-2xl border border-zinc-800/80">
-            <canvas
-              ref={canvasRef}
-              className="max-w-full max-h-full w-auto h-auto object-contain rounded-xl select-none block"
-              style={{
-                aspectRatio:
-                  config.aspectRatio === "4:5"
-                    ? "4/5"
-                    : config.aspectRatio === "9:16"
-                    ? "9/16"
-                    : "1/1",
-                imageRendering: "auto"
-              }}
-            />
+        {/* Viewport for Canvas */}
+        {internalScrollMode === "scroll" ? (
+          /* Internal Scroll Mode (100% Real Proportion with isolated vertical scroll) */
+          <div
+            className="flex-1 w-full min-h-0 overflow-y-auto overscroll-y-contain px-2 py-3 flex flex-col items-center select-none"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <div className="relative w-full max-w-[360px] bg-black rounded-xl overflow-hidden shadow-2xl border border-zinc-800/80 my-auto">
+              <canvas
+                ref={canvasRef}
+                className="w-full h-auto object-contain rounded-xl select-none block"
+                style={{
+                  aspectRatio:
+                    config.aspectRatio === "4:5"
+                      ? "4/5"
+                      : config.aspectRatio === "9:16"
+                      ? "9/16"
+                      : "1/1",
+                  imageRendering: "auto"
+                }}
+              />
+            </div>
+            <div className="text-[10px] text-zinc-400 py-1 flex items-center gap-1.5 shrink-0 select-none">
+              <ArrowUpDown className="w-3 h-3 text-sky-400 animate-bounce" />
+              <span>Scroll interno ativo • Role para cima/baixo</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Fit Mode (Scaled to fit the widget height completely without scroll) */
+          <div className="flex-1 w-full min-h-0 flex items-center justify-center p-1 sm:p-1.5 overflow-hidden">
+            <div className="relative flex items-center justify-center max-w-full max-h-full bg-black rounded-xl overflow-hidden shadow-2xl border border-zinc-800/80">
+              <canvas
+                ref={canvasRef}
+                className="max-w-full max-h-full w-auto h-auto object-contain rounded-xl select-none block"
+                style={{
+                  aspectRatio:
+                    config.aspectRatio === "4:5"
+                      ? "4/5"
+                      : config.aspectRatio === "9:16"
+                      ? "9/16"
+                      : "1/1",
+                  imageRendering: "auto"
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Fullscreen Zoom & Inspection Modal */}
         {showZoomModal && zoomModalDataUrl && (
