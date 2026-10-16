@@ -1,22 +1,23 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Download, Copy, Check, Sparkles, RefreshCw, ZoomIn } from "lucide-react";
+import { Download, Copy, Check, Sparkles, RefreshCw, ZoomIn, Share2, Maximize2, X, Square, Smartphone } from "lucide-react";
 import confetti from "canvas-confetti";
 import { PostConfig } from "@/lib/presets";
+
+export interface CanvasPostRendererRef {
+  download: () => void;
+  copy: () => void;
+  share: () => void;
+}
 
 interface CanvasPostRendererProps {
   config: PostConfig;
   onRefreshPhrase?: () => void;
+  onChangeAspectRatio?: (ratio: "1:1" | "4:5" | "9:16") => void;
+  compact?: boolean;
 }
 
-export default function CanvasPostRenderer({
-  config,
-  onRefreshPhrase
-}: CanvasPostRendererProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isCopied, setIsCopied] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 // Dimensions based on aspect ratio
 function getDimensions(aspectRatio: string) {
   switch (aspectRatio) {
@@ -29,6 +30,20 @@ function getDimensions(aspectRatio: string) {
       return { width: 1080, height: 1080 };
   }
 }
+
+export const CanvasPostRenderer = React.forwardRef<
+  CanvasPostRendererRef,
+  CanvasPostRendererProps
+>(function CanvasPostRenderer(
+  { config, onRefreshPhrase, onChangeAspectRatio, compact = false },
+  ref
+) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isShared, setIsShared] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showZoomModal, setShowZoomModal] = useState(false);
+  const [zoomModalDataUrl, setZoomModalDataUrl] = useState<string | null>(null);
 
   // Helper to wrap text nicely on canvas
   const wrapText = (
@@ -432,6 +447,61 @@ function getDimensions(aspectRatio: string) {
     }
   };
 
+  // Share via Web Share API (native on mobile devices)
+  const handleShare = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const safeName = config.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+        const file = new File([blob], `postcraft_${safeName}.png`, { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `PostCraft - ${config.name}`,
+            text: config.content
+          });
+          setIsShared(true);
+          setTimeout(() => setIsShared(false), 2400);
+        } else if (navigator.share) {
+          await navigator.share({
+            title: `PostCraft - ${config.name}`,
+            text: config.content
+          });
+          setIsShared(true);
+          setTimeout(() => setIsShared(false), 2400);
+        } else {
+          // Fallback to downloading image
+          handleDownload();
+        }
+      }, "image/png");
+    } catch (err) {
+      // User canceled or share failed
+      console.warn("Share was canceled or unsupported:", err);
+    }
+  };
+
+  const handleOpenZoom = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    try {
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      setZoomModalDataUrl(dataUrl);
+      setShowZoomModal(true);
+    } catch (e) {
+      console.warn("Could not generate zoom modal data URL:", e);
+    }
+  };
+
+  React.useImperativeHandle(ref, () => ({
+    download: handleDownload,
+    copy: handleCopyImage,
+    share: handleShare
+  }));
+
   const { width, height } = getDimensions(config.aspectRatio);
   const aspectRatioClass =
     config.aspectRatio === "4:5"
@@ -440,49 +510,284 @@ function getDimensions(aspectRatio: string) {
       ? "aspect-[9/16]"
       : "aspect-square";
 
-  return (
-    <div className="flex flex-col items-center w-full">
-      {/* Top action bar */}
-      <div className="flex items-center justify-between w-full max-w-[500px] mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
-            {config.aspectRatio} • {width}×{height}px
-          </span>
-          <span className="text-xs text-zinc-500">Renderização Canvas HD</span>
+  if (compact) {
+    return (
+      <div className="flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden select-none">
+        {/* Compact Top Action Bar */}
+        <div className="flex items-center justify-between w-full px-2 py-1 gap-1.5 shrink-0 border-b border-zinc-800/80 bg-zinc-950/80">
+          {/* Quick Aspect Ratio Switcher */}
+          {onChangeAspectRatio ? (
+            <div className="flex items-center gap-0.5 p-0.5 bg-zinc-900 border border-zinc-800 rounded-lg">
+              <button
+                type="button"
+                onClick={() => onChangeAspectRatio("1:1")}
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
+                  config.aspectRatio === "1:1"
+                    ? "bg-zinc-800 text-sky-400 shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                1:1
+              </button>
+              <button
+                type="button"
+                onClick={() => onChangeAspectRatio("4:5")}
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
+                  config.aspectRatio === "4:5"
+                    ? "bg-zinc-800 text-sky-400 shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                4:5
+              </button>
+              <button
+                type="button"
+                onClick={() => onChangeAspectRatio("9:16")}
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
+                  config.aspectRatio === "9:16"
+                    ? "bg-zinc-800 text-sky-400 shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                9:16
+              </button>
+            </div>
+          ) : (
+            <span className="text-[10px] font-mono text-zinc-400">{config.aspectRatio}</span>
+          )}
+
+          {/* Action Buttons: Baixar, Copiar, Compartilhar, Zoom */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={isExporting}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-semibold text-[11px] shadow-sm transition active:scale-95 cursor-pointer min-h-[30px]"
+              title="Baixar imagem em PNG"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Baixar</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyImage}
+              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+              title="Copiar imagem"
+            >
+              {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleShare}
+              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-sky-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+              title="Compartilhar no WhatsApp/Instagram"
+            >
+              {isShared ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenZoom}
+              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+              title="Inspecionar em Tela Cheia"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+
+            {onRefreshPhrase && (
+              <button
+                type="button"
+                onClick={onRefreshPhrase}
+                className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-orange-400 hover:text-white transition active:scale-95 cursor-pointer min-h-[30px] min-w-[30px] flex items-center justify-center"
+                title="Sortear outra frase"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
-        {onRefreshPhrase && (
-          <button
-            onClick={onRefreshPhrase}
-            title="Sortear outra frase do acervo"
-            className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-white px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition"
+        {/* Centered Canvas Scaled to Fit Available Space without overflowing */}
+        <div className="flex-1 w-full min-h-0 flex items-center justify-center p-1 sm:p-1.5 overflow-hidden">
+          <div className="relative flex items-center justify-center max-w-full max-h-full bg-black rounded-xl overflow-hidden shadow-2xl border border-zinc-800/80">
+            <canvas
+              ref={canvasRef}
+              className="max-w-full max-h-full w-auto h-auto object-contain rounded-xl select-none block"
+              style={{
+                aspectRatio:
+                  config.aspectRatio === "4:5"
+                    ? "4/5"
+                    : config.aspectRatio === "9:16"
+                    ? "9/16"
+                    : "1/1",
+                imageRendering: "auto"
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Fullscreen Zoom & Inspection Modal */}
+        {showZoomModal && zoomModalDataUrl && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 animate-in fade-in duration-200"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Outra frase</span>
-          </button>
+            {/* Modal Header */}
+            <div className="w-full max-w-4xl flex items-center justify-between pb-2 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm text-white flex items-center gap-2">
+                  Inspecionar Post em Alta Resolução ({width}×{height}px)
+                </span>
+              </div>
+              <button
+                onClick={() => setShowZoomModal(false)}
+                className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center"
+                title="Fechar (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Image Viewport */}
+            <div className="flex-1 w-full max-w-4xl flex items-center justify-center py-3 overflow-auto">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={zoomModalDataUrl}
+                alt="Preview ampliado do post"
+                className="max-h-[75vh] max-w-full object-contain rounded-xl shadow-2xl border border-zinc-800 select-none"
+              />
+            </div>
+
+            {/* Modal Footer Controls */}
+            <div className="w-full max-w-4xl pt-2 border-t border-zinc-800 flex items-center justify-center gap-3">
+              <button
+                onClick={handleDownload}
+                className="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition cursor-pointer min-h-[44px]"
+              >
+                <Download className="w-4 h-4" />
+                <span>Baixar PNG</span>
+              </button>
+              <button
+                onClick={handleShare}
+                className="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-white font-semibold text-xs transition cursor-pointer min-h-[44px]"
+              >
+                <Share2 className="w-4 h-4 text-sky-400" />
+                <span>Compartilhar</span>
+              </button>
+            </div>
+          </div>
         )}
       </div>
+    );
+  }
 
-      {/* Canvas Viewport Frame */}
-      <div className="relative group w-full max-w-[500px] bg-black p-2 sm:p-4 rounded-2xl border border-zinc-800/80 shadow-2xl shadow-black/80 flex items-center justify-center overflow-hidden">
+  return (
+    <div className="flex flex-col items-center w-full">
+      {/* Top action & aspect ratio bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full max-w-[500px] mb-2 sm:mb-3 gap-2 px-1">
+        {/* Aspect ratio quick selector (especially handy on mobile) */}
+        {onChangeAspectRatio ? (
+          <div className="flex items-center gap-1 p-1 bg-zinc-900/90 border border-zinc-800 rounded-xl overflow-x-auto">
+            <button
+              onClick={() => onChangeAspectRatio("1:1")}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 ${
+                config.aspectRatio === "1:1"
+                  ? "bg-zinc-800 text-sky-400 font-semibold shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Square className="w-3 h-3" />
+              <span>1:1 Feed</span>
+            </button>
+
+            <button
+              onClick={() => onChangeAspectRatio("4:5")}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 ${
+                config.aspectRatio === "4:5"
+                  ? "bg-zinc-800 text-sky-400 font-semibold shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <span className="font-bold text-[10px]">4:5</span>
+              <span>Retrato</span>
+            </button>
+
+            <button
+              onClick={() => onChangeAspectRatio("9:16")}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 ${
+                config.aspectRatio === "9:16"
+                  ? "bg-zinc-800 text-sky-400 font-semibold shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Smartphone className="w-3 h-3" />
+              <span>9:16 Stories</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[11px] sm:text-xs font-semibold px-2 py-0.5 sm:py-1 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+              {config.aspectRatio} • {width}×{height}px
+            </span>
+            <span className="text-[11px] sm:text-xs text-zinc-500 hidden xs:inline">Canvas HD</span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-end gap-1.5">
+          <button
+            onClick={handleOpenZoom}
+            title="Inspecionar em Tela Cheia / Zoom HD"
+            className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-zinc-400 hover:text-white px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition cursor-pointer min-h-[32px]"
+          >
+            <ZoomIn className="w-3.5 h-3.5 text-sky-400" />
+            <span className="hidden xs:inline">Zoom</span>
+          </button>
+
+          {onRefreshPhrase && (
+            <button
+              onClick={onRefreshPhrase}
+              title="Sortear outra frase do acervo"
+              className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-zinc-400 hover:text-white px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition cursor-pointer min-h-[32px]"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-orange-400" />
+              <span>Sortear Frase</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Canvas Viewport Frame with Responsive Max-Heights */}
+      <div className="relative group w-full max-w-[500px] bg-black p-1.5 sm:p-3 rounded-2xl border border-zinc-800/80 shadow-2xl shadow-black/80 flex items-center justify-center overflow-hidden">
         {/* Glow ambient effect */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-sky-500/10 via-purple-500/10 to-emerald-500/10 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-sky-500/10 via-purple-500/10 to-emerald-500/10 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition pointer-events-none" />
 
-        <div className={`relative w-full ${aspectRatioClass} flex items-center justify-center bg-black rounded-xl overflow-hidden shadow-inner`}>
+        <div className={`relative w-full ${aspectRatioClass} max-h-[48vh] xs:max-h-[52vh] sm:max-h-[64vh] lg:max-h-[70vh] flex items-center justify-center bg-black rounded-xl overflow-hidden shadow-inner`}>
           <canvas
             ref={canvasRef}
-            className="w-full h-full object-contain rounded-xl select-none"
+            className="w-full h-full max-h-[48vh] xs:max-h-[52vh] sm:max-h-[64vh] lg:max-h-[70vh] object-contain rounded-xl select-none"
             style={{ imageRendering: "auto" }}
           />
+
+          {/* Quick overlay tap-to-inspect button on mobile */}
+          <button
+            onClick={handleOpenZoom}
+            className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/90 border border-zinc-700/80 text-zinc-300 hover:text-white backdrop-blur-sm opacity-80 hover:opacity-100 transition cursor-pointer"
+            title="Expandir e ver em detalhes"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
       {/* Export & Action Buttons */}
-      <div className="flex flex-wrap items-center justify-center gap-3 w-full max-w-[500px] mt-4">
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 w-full max-w-[500px] mt-2.5 sm:mt-3.5">
         <button
           onClick={handleDownload}
           disabled={isExporting}
-          className="flex-1 min-w-[160px] flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-sky-500/25 active:scale-[0.98] transition cursor-pointer"
+          className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-3.5 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-sky-500/25 active:scale-[0.98] transition cursor-pointer min-h-[44px]"
         >
           <Download className="w-4 h-4" />
           <span>Baixar Imagem PNG</span>
@@ -490,7 +795,7 @@ function getDimensions(aspectRatio: string) {
 
         <button
           onClick={handleCopyImage}
-          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-white font-medium text-sm active:scale-[0.98] transition cursor-pointer"
+          className="flex items-center justify-center gap-1.5 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-white font-medium text-xs sm:text-sm active:scale-[0.98] transition cursor-pointer min-h-[44px]"
           title="Copiar imagem direto para área de transferência"
         >
           {isCopied ? (
@@ -501,11 +806,84 @@ function getDimensions(aspectRatio: string) {
           ) : (
             <>
               <Copy className="w-4 h-4" />
-              <span>Copiar Imagem</span>
+              <span>Copiar</span>
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={handleShare}
+          className="flex items-center justify-center gap-1.5 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-white font-medium text-xs sm:text-sm active:scale-[0.98] transition cursor-pointer min-h-[44px]"
+          title="Compartilhar no WhatsApp, Instagram, Telegram ou Redes Sociais"
+        >
+          {isShared ? (
+            <>
+              <Check className="w-4 h-4 text-emerald-400" />
+              <span className="text-emerald-400">Enviado!</span>
+            </>
+          ) : (
+            <>
+              <Share2 className="w-4 h-4 text-sky-400" />
+              <span className="hidden xs:inline">Compartilhar</span>
             </>
           )}
         </button>
       </div>
+
+      {/* Fullscreen Zoom & Inspection Modal */}
+      {showZoomModal && zoomModalDataUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+        >
+          {/* Modal Header */}
+          <div className="w-full max-w-4xl flex items-center justify-between pb-2 border-b border-zinc-800">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-white flex items-center gap-2">
+                Inspecionar Post em Alta Resolução ({width}×{height}px)
+              </span>
+            </div>
+            <button
+              onClick={() => setShowZoomModal(false)}
+              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center"
+              title="Fechar (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Modal Image Viewport */}
+          <div className="flex-1 w-full max-w-4xl flex items-center justify-center py-3 overflow-auto">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={zoomModalDataUrl}
+              alt="Preview ampliado do post"
+              className="max-h-[75vh] max-w-full object-contain rounded-xl shadow-2xl border border-zinc-800 select-none"
+            />
+          </div>
+
+          {/* Modal Footer Controls */}
+          <div className="w-full max-w-4xl pt-2 border-t border-zinc-800 flex items-center justify-center gap-3">
+            <button
+              onClick={handleDownload}
+              className="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition cursor-pointer min-h-[44px]"
+            >
+              <Download className="w-4 h-4" />
+              <span>Baixar PNG</span>
+            </button>
+            <button
+              onClick={handleShare}
+              className="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-white font-semibold text-xs transition cursor-pointer min-h-[44px]"
+            >
+              <Share2 className="w-4 h-4 text-sky-400" />
+              <span>Compartilhar</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+});
+
+export default CanvasPostRenderer;

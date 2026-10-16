@@ -44,25 +44,25 @@ export default function PostGallery({ onSelectPost, currentText }: PostGalleryPr
         </div>
 
         {/* Search */}
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar frases..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full sm:w-48 bg-zinc-900 border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500"
+            className="w-full sm:w-56 bg-zinc-900 border border-zinc-800 rounded-xl pl-8 pr-3 py-2 text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 min-h-[40px]"
           />
         </div>
       </div>
 
       {/* Category Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setFilter(cat.id)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium shrink-0 transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium shrink-0 transition cursor-pointer min-h-[36px] flex items-center justify-center ${
               filter === cat.id
                 ? "bg-zinc-800 text-white border border-sky-500/80 shadow-sm"
                 : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-zinc-200"

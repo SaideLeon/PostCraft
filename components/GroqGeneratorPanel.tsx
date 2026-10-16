@@ -183,12 +183,12 @@ export default function GroqGeneratorPanel({
           <Layers className="w-3.5 h-3.5 text-zinc-400" />
           Estilo do Post:
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2">
           {styleOptions.map((opt) => (
             <button
               key={opt.id}
               onClick={() => setStyle(opt.id)}
-              className={`flex flex-col text-left p-2.5 rounded-xl border transition cursor-pointer ${
+              className={`flex flex-col text-left p-2.5 rounded-xl border transition cursor-pointer min-h-[54px] justify-center ${
                 style === opt.id
                   ? "bg-zinc-800 border-orange-500/80 text-white shadow-sm ring-1 ring-orange-500/30"
                   : "bg-zinc-900/60 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
@@ -220,12 +220,12 @@ export default function GroqGeneratorPanel({
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="Ex: 'ter medo de se apegar de novo', 'traição e respeito', 'flerte noturno'..."
-          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500/80 transition"
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500/80 transition min-h-[42px]"
         />
       </div>
 
       {/* Groq Model Selector */}
-      <div className="flex items-center justify-between gap-2 mb-4 bg-zinc-900/50 p-2.5 rounded-xl border border-zinc-800/60 text-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 bg-zinc-900/50 p-2.5 rounded-xl border border-zinc-800/60 text-xs">
         <span className="text-zinc-400 flex items-center gap-1.5 shrink-0">
           <Settings2 className="w-3.5 h-3.5 text-zinc-400" />
           Modelo Groq:
@@ -233,7 +233,7 @@ export default function GroqGeneratorPanel({
         <select
           value={model}
           onChange={(e) => setModel(e.target.value)}
-          className="bg-zinc-900 text-zinc-200 text-xs border border-zinc-700 rounded-lg px-2 py-1 focus:outline-none focus:border-orange-500 max-w-[240px] truncate"
+          className="w-full sm:w-auto bg-zinc-900 text-zinc-200 text-xs border border-zinc-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-orange-500 max-w-full sm:max-w-[240px] truncate min-h-[38px]"
         >
           {GROQ_MODELS.map((m) => (
             <option key={m.id} value={m.id}>
@@ -247,7 +247,7 @@ export default function GroqGeneratorPanel({
       <button
         onClick={handleGenerate}
         disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-xs tracking-wide uppercase shadow-lg shadow-orange-500/20 active:scale-[0.99] transition cursor-pointer disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-xs tracking-wide uppercase shadow-lg shadow-orange-500/20 active:scale-[0.99] transition cursor-pointer disabled:opacity-50 min-h-[44px]"
       >
         {isLoading ? (
           <>

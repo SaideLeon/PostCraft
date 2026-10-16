@@ -71,6 +71,33 @@ O **PostCraft** foi desenhado para replicar com máxima fidelidade visual a est�
   - *Plus Jakarta Sans* (Display bold)
   - *JetBrains Mono* (Estilo minimalista monospace)
 
+### 6. 📱 Divisão Vertical de Tela Mobile & Rolagem Independente
+- **Divisão de Cima para Baixo (Vertical Split no Mobile)**:
+  - **Por Cima (Fixo)**: A pré-visualização ao vivo do post renderizado no Canvas fica firmemente travada no topo da tela, sem nunca sair do campo de visão.
+  - **Por Baixo (Scroll Independente)**: Todos os elementos de configuração (abas, presets, sliders de ajuste, textos, modelos, etc.) rolam em um container isolado com aceleração por hardware e momentum scrolling nativo.
+  - **Rolagem 100% Desacoplada**: Rolar qualquer elemento de pré-definição ou configuração nunca move, treme ou afeta a pré-visualização do post acima.
+- **Seletor de Altura da Prévia (Split Ratio)**:
+  - Controles diretos na barra divisória para ajustar a proporção da tela (**30%**, **40%**, **50%**), dando mais espaço para as configurações ou mais destaque para o post conforme a necessidade do momento.
+- **Botões Touch Stepper (- e +)**: Todos os sliders incluem botões dedicados de incremento e decremento para precisão milimétrica em telas touch, eliminando erros de toque.
+- **Categorização Modular no Editor**: Divisão em categorias rápidas (*Formato & Tema*, *Foto & Perfil*, *Frase & Texto*, *Selos & Ícones*, *Todas*) que facilitam o acesso direto aos controles.
+- **Integração com Web Share API**: Botão **Compartilhar** nativo para postar ou enviar a imagem direto no Instagram, WhatsApp, Twitter ou salvar no dispositivo.
+- **Inspecionar em Tela Cheia (Zoom HD)**: Modal dedicado para verificar cada detalhe da renderização 1080p direto no smartphone.
+- **Compatibilidade com Telas Ultracompactas**: Otimizado para funcionar perfeitamente desde 320px (iPhone SE, Androids compactos) até telas grandes.
+
+### 7. 🎯 Modo de Ajuste com Prévia Ao Vivo (Live Focus Adjust)
+- **Eliminação do Ajuste Cego no Celular**: No momento em que o usuário toca para ajustar um determinado elemento, todos os outros painéis e opções são ocultados.
+- **Foco Pôster + Ajustador Isolado**: O Canvas (pôster) permanece em destaque contínuo no topo da tela enquanto apenas o controle daquele elemento específico fica visível logo abaixo, atualizando a imagem em tempo real a cada movimento.
+- **Elementos Ajustáveis em Tempo Real**:
+  - *📐 Posição Geral*: Subir (-30px), Descer (+30px), Centralizar (0) e deslocamento contínuo.
+  - *🖼️ Foto no Círculo*: Zoom (50% a 250%) e Pan Horizontal/Vertical (X/Y) com botão de reset.
+  - *👤 Tamanho da Figura*: Diâmetro de 60px a 160px.
+  - *🔤 Tamanho dos Nomes*: Nome de exibição e nome de usuário (@) independentes.
+  - *📏 Espaço do Texto*: Distância entre o perfil e a frase (20px a 180px).
+  - *✍️ Tamanho da Frase*: Escala da tipografia e alternância rápida de fontes.
+  - *💎 Selo Azul*: Tamanho e eixos X/Y do verificado com toggle de ativação.
+  - *••• Menu*: Tamanho e eixos X/Y dos 3 pontos com toggle de ativação.
+- **Botão Concluir**: Retorna ao painel geral com apenas 1 toque mantendo todas as alterações salvas.
+
 ---
 
 ## 🛠️ Tecnologias Utilizadas
