@@ -33,8 +33,13 @@ export interface PostConfig {
   dotsOffsetY?: number; // Vertical offset of options dots in pixels (e.g. -80 to 80, default 0)
 }
 
-// Crisp Vector Avatars as Base64/SVG Data URIs so they load reliably offline & on canvas
+// Crisp Vector Avatars as Base64/SVG Data URIs and local assets
 export const PRESET_AVATARS = [
+  {
+    id: "fulano_disse",
+    label: "Fulano disse (Padrão)",
+    url: "/fulano_avatar.jpg"
+  },
   {
     id: "aesthetic_girl",
     label: "Chorar (Silhueta P&B)",
@@ -74,12 +79,24 @@ export const PRESET_AVATARS = [
 
 export const PRESET_THEMES = [
   {
+    id: "fulano_disse",
+    name: "Fulano disse",
+    handle: "@fulanodisse",
+    badge: true,
+    dots: true,
+    avatar: "/fulano_avatar.jpg",
+    themeStyle: "twitter_dark" as const,
+    fontFamily: "sans" as const,
+    sampleContent:
+      "Não espere convite para ser tratado como prioridade.\nMostre que seu tempo tem preço e quem não paga, não tem direito ao seu espaço."
+  },
+  {
     id: "chorar",
     name: "Chorar (@chorarr)",
     handle: "@chorarr",
     badge: false,
     dots: true,
-    avatar: PRESET_AVATARS[0].url,
+    avatar: PRESET_AVATARS[1].url,
     themeStyle: "twitter_dark" as const,
     fontFamily: "sans" as const,
     sampleContent: "Ninguém deveria ser tão magoado a ponto de ter medo de gostar de alguém de novo."
@@ -90,7 +107,7 @@ export const PRESET_THEMES = [
     handle: "@_ordemmasculina_",
     badge: true,
     dots: false,
-    avatar: PRESET_AVATARS[1].url,
+    avatar: PRESET_AVATARS[2].url,
     themeStyle: "twitter_dark" as const,
     fontFamily: "sans" as const,
     sampleContent: "Um Homem sacrifica a sua felicidade para ver a sua Mulher sorrir, mas uma Mulher sacrifica o Homem apenas para manter o seu próprio sorriso.\n\nDuro? Não. Apenas a pura verdade."
@@ -112,7 +129,7 @@ export const PRESET_THEMES = [
     handle: "@socialmentesagaz",
     badge: false,
     dots: false,
-    avatar: PRESET_AVATARS[2].url,
+    avatar: PRESET_AVATARS[3].url,
     themeStyle: "quote_bold" as const,
     fontFamily: "serif" as const,
     sampleContent: "“Sonhei com você. A parte boa é que agora tô na dúvida se foi sonho... ou previsão.”"
@@ -123,7 +140,7 @@ export const PRESET_THEMES = [
     handle: "@verdadescruas",
     badge: true,
     dots: true,
-    avatar: PRESET_AVATARS[3].url,
+    avatar: PRESET_AVATARS[4].url,
     themeStyle: "twitter_dark" as const,
     fontFamily: "sans" as const,
     sampleContent: "Tornarmo-nos Homens é perceber que, na realidade, não somos verdadeiramente amados.\n\nNós proporcionamos algo e recebemos amor em troca. Quando começamos a falhar um pouco, é o fim da história."
@@ -131,6 +148,27 @@ export const PRESET_THEMES = [
 ];
 
 export const CURATED_POSTS_LIBRARY = [
+  {
+    id: "fd1",
+    author: "Fulano disse",
+    handle: "@fulanodisse",
+    category: "Fulano disse",
+    text: "Não espere convite para ser tratado como prioridade.\nMostre que seu tempo tem preço e quem não paga, não tem direito ao seu espaço."
+  },
+  {
+    id: "fd2",
+    author: "Fulano disse",
+    handle: "@fulanodisse",
+    category: "Fulano disse",
+    text: "Quem não valoriza a sua presença, não merece sequer a sua ausência explicada."
+  },
+  {
+    id: "fd3",
+    author: "Fulano disse",
+    handle: "@fulanodisse",
+    category: "Fulano disse",
+    text: "Maturidade é entender que o silêncio diz muito mais do que qualquer discussão desnecessária."
+  },
   {
     id: "p1",
     author: "Chorar",

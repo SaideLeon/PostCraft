@@ -573,7 +573,7 @@ export default function PostCustomizer({
                 )}
                 <button
                   type="button"
-                  onClick={() => onChange({ avatarSize: 100, nameFontSize: 36, handleFontSize: 30, headerSpacing: 54 })}
+                  onClick={() => onChange({ avatarSize: 160, nameFontSize: 54, handleFontSize: 44, headerSpacing: 150 })}
                   className="text-[10px] text-zinc-400 hover:text-zinc-200 underline cursor-pointer p-1"
                 >
                   Padrão
@@ -801,7 +801,7 @@ export default function PostCustomizer({
                   )}
                   <button
                     type="button"
-                    onClick={() => onChange({ badgeSize: 14, badgeOffsetX: 0, badgeOffsetY: 0 })}
+                    onClick={() => onChange({ badgeSize: 26, badgeOffsetX: 26, badgeOffsetY: 0 })}
                     className="text-[10px] text-zinc-400 hover:text-zinc-200 underline cursor-pointer p-1"
                   >
                     Resetar
@@ -866,7 +866,7 @@ export default function PostCustomizer({
                   )}
                   <button
                     type="button"
-                    onClick={() => onChange({ dotsSize: 4, dotsOffsetX: 0, dotsOffsetY: 0 })}
+                    onClick={() => onChange({ dotsSize: 8, dotsOffsetX: 50, dotsOffsetY: 0 })}
                     className="text-[10px] text-zinc-400 hover:text-zinc-200 underline cursor-pointer p-1"
                   >
                     Resetar

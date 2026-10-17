@@ -87,12 +87,13 @@ export async function POST(req: NextRequest) {
 
     // Build system prompt based on style calibration
     let promptMessage = "";
-    let effectiveTemperature = 0.9;
+    // High temperature for non-biblical styles (maximum creativity, varied vocabulary, non-copycat originality)
+    let effectiveTemperature = 1.20;
     let effectiveMaxTokens = 1024;
-    let effectiveTopP = 1.0;
+    let effectiveTopP = 0.95;
 
     if (isSalomao) {
-      // King Solomon calibration: Low temperature, compressed tokens, zero tolerance for hallucinations
+      // King Solomon calibration: Low temperature (0.15), compressed tokens, zero tolerance for hallucinations
       effectiveTemperature = 0.15;
       effectiveMaxTokens = 512;
       effectiveTopP = 0.8;
@@ -128,15 +129,19 @@ ${antiRepetitionSection}
 
 [Texto do versículo fiel]`;
     } else {
+      // Non-biblical: High temperature (1.20) for maximum originality, unpredictability, and anti-copycat creativity
+      effectiveTemperature = 1.20;
+      effectiveTopP = 0.95;
+
       let toneDescription = "";
       switch (style) {
         case "melancolia":
           toneDescription =
-            "Estilo 'Chorar / @chorarr': Frases curtas, profundas, melancólicas, desabafos sobre amor não correspondido, decepção, solidão, exaustão emocional, sumiço repentino das pessoas, mágoa e frieza. Tom honesto, triste e identificável que gera alto compartilhamento em posts dark do Twitter/X.";
+            "Estilo 'Chorar / @chorarr': Desabafos poéticos, melancólicos e profundos sobre amor não correspondido, decepção, solidão, exaustão emocional, sumiço repentino das pessoas, mágoa e frieza. Tom honesto, triste e identificável que gera alto compartilhamento em posts dark do Twitter/X.";
           break;
         case "masculinidade":
           toneDescription =
-            "Estilo 'Ordem Masculina / @_ordemmasculina_': Frases diretas sobre maturidade masculina, estoicismo, relacionamentos modernos, lealdade, respeito, lições duras sobre a realidade, autossuficiência e não aceitar joguinhos ou manipulação. Tom firme, realista, sem filtros, no estilo clássico de conselho viral.";
+            "Estilo 'Ordem Masculina / @_ordemmasculina_': Filosofia estoica moderna, maturidade masculina, limites inegociáveis, respeito, lições duras sobre a realidade, autossuficiência e não aceitar joguinhos ou manipulação. Tom firme, realista, sem filtros, no estilo clássico de conselho viral.";
           break;
         case "conquista":
           toneDescription =
@@ -159,23 +164,24 @@ ${antiRepetitionSection}
         generalAntiRepetition = `\n\nNÃO REPITA nenhuma destas frases ou temas já gerados recentemente no histórico:\n${sanitizedHistory.slice(-15).map((h) => `- ${h}`).join("\n")}`;
       }
 
-      promptMessage = `Você é um escritor especialista em posts virais no formato Twitter/X dark mode para redes sociais (Instagram, Threads, X).
-Objetivo: Criar ${count} post(s) inédito(s), impactante(s) e autêntico(s).
+      promptMessage = `Você é um autor e copywriter de elite especializado em pensamentos originais e posts virais no formato Twitter/X dark mode para redes sociais (Instagram, Threads, X).
+OBJETIVO: Criar ${count} post(s) 100% INÉDITO(S), IMPACTANTE(S), CRIATIVO(S) E AUTÊNTICO(S).
 
-Diretrizes de estilo:
+DIRETRIZES DE ATMOSFERA:
 ${toneDescription}
 
-Tema / Detalhes específicos informados pelo usuário:
-${topic ? `"${topic}"` : "Crie algo memorável dentro do estilo especificado."}
-${customInstructions ? `Instruções adicionais: ${customInstructions}` : ""}
+Tema / Detalhes informados pelo usuário:
+${topic ? `"${topic}"` : "Crie uma reflexão autoral memorável, marcante e arrebatadora dentro do estilo especificado."}
+${customInstructions ? `Instruções adicionais do usuário: ${customInstructions}` : ""}
 ${generalAntiRepetition}
 
-Regras estritas:
-1. Escreva em Português natural e fluente (pode usar tom de Portugal ou Brasil dependendo da concordância natural).
-2. Sem clichês baratos ou emojis exagerados. Máximo de 1 a 4 linhas bem pontuadas e ritmadas.
-3. Se for mais de uma frase ou continuação, separe com quebra de linha dupla (exemplo: uma reflexão, depois 'Duro? Não. Apenas a pura verdade.').
-4. Retorne apenas o texto das frases geradas. Se for gerar mais de uma, separe cada opção com a tag: [SEPARADOR]
-5. NÃO inclua saudações, nem introduções como "Aqui estão as frases:", apenas o conteúdo puro.`;
+DIRETRIZES ESTRITAS DE MÁXIMA CRIATIVIDADE (NÃO SEJA UM COPIADOR):
+1. ZERO CÓPIA / PROIBIDO PLÁGIO: NÃO copie, NÃO reproduza frases já existentes nem faça paráfrases baratas de posts clássicos ou clichês de redes sociais. Seja um criador original, ousado e autoral.
+2. METÁFORAS INÉDITAS: Invente analogias novas, surpreendentes e inteligentes que o leitor ainda não tenha visto em lugar nenhum.
+3. RITMO E CADÊNCIA: Escreva em Português natural, visceral e cadenciado. De 1 a 4 linhas bem pontuadas e cortantes.
+4. Se for mais de uma linha ou continuação, separe com quebra de linha dupla (exemplo: pensamento inicial profundo, seguido de um fechamento seco e direto).
+5. Retorne unicamente o texto dos posts gerados. Se for gerar mais de uma opção (${count}), separe cada opção estritamente com a tag: [SEPARADOR]
+6. SEM SAUDAÇÕES, sem introduções e sem títulos como "Aqui estão as frases:". Apenas o conteúdo puro.`;
     }
 
     // Helper to pick items from fallback list excluding history items

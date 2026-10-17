@@ -79,39 +79,40 @@ export default function Home() {
     }
   };
 
-  // Initial state based on the first attached image (Chorar @chorarr)
+  // Initial default state copied directly from user-uploaded screenshots (Fulano disse @fulanodisse)
   const [config, setConfig] = useState<PostConfig>({
     id: "initial",
     themeStyle: "twitter_dark",
-    aspectRatio: "1:1",
-    name: "Chorar",
-    handle: "@chorarr",
-    avatarUrl: PRESET_AVATARS[0].url,
-    isVerified: false,
+    aspectRatio: "9:16",
+    name: "Fulano disse",
+    handle: "@fulanodisse",
+    avatarUrl: "/fulano_avatar.jpg",
+    isVerified: true,
     showDots: true,
-    showWatermark: false,
-    watermarkText: "@chorarr",
-    content: "Ninguém deveria ser tão magoado a ponto de ter medo de gostar de alguém de novo.",
+    showWatermark: true,
+    watermarkText: "@fulanodisse",
+    content:
+      "Não espere convite para ser tratado como prioridade.\nMostre que seu tempo tem preço e quem não paga, não tem direito ao seu espaço.",
     fontFamily: "sans",
-    fontSize: 44,
+    fontSize: 64,
     textAlign: "left",
     textColor: "#ffffff",
     bgColor: "#000000",
     vignette: false,
     cardPadding: 120,
-    avatarSize: 100,
-    nameFontSize: 36,
-    handleFontSize: 30,
-    headerSpacing: 54,
-    verticalOffset: 0,
+    avatarSize: 160,
+    nameFontSize: 54,
+    handleFontSize: 44,
+    headerSpacing: 150,
+    verticalOffset: -225,
     avatarZoom: 1.0,
     avatarOffsetX: 0,
     avatarOffsetY: 0,
-    badgeSize: 14,
-    badgeOffsetX: 0,
+    badgeSize: 26,
+    badgeOffsetX: 26,
     badgeOffsetY: 0,
-    dotsSize: 4,
-    dotsOffsetX: 0,
+    dotsSize: 8,
+    dotsOffsetX: 50,
     dotsOffsetY: 0
   });
 
@@ -122,6 +123,36 @@ export default function Home() {
   const handleApplyPresetTheme = (themeId: string) => {
     const theme = PRESET_THEMES.find((t) => t.id === themeId);
     if (!theme) return;
+
+    if (theme.id === "fulano_disse") {
+      setConfig((prev) => ({
+        ...prev,
+        name: "Fulano disse",
+        handle: "@fulanodisse",
+        avatarUrl: "/fulano_avatar.jpg",
+        isVerified: true,
+        showDots: true,
+        showWatermark: true,
+        watermarkText: "@fulanodisse",
+        themeStyle: "twitter_dark",
+        fontFamily: "sans",
+        content: theme.sampleContent,
+        fontSize: 64,
+        headerSpacing: 150,
+        verticalOffset: -225,
+        avatarSize: 160,
+        nameFontSize: 54,
+        handleFontSize: 44,
+        badgeSize: 26,
+        badgeOffsetX: 26,
+        badgeOffsetY: 0,
+        dotsSize: 8,
+        dotsOffsetX: 50,
+        dotsOffsetY: 0,
+        aspectRatio: "9:16"
+      }));
+      return;
+    }
 
     setConfig((prev) => ({
       ...prev,
@@ -150,13 +181,34 @@ export default function Home() {
     if (authorName) update.name = authorName;
     if (handle) update.handle = handle;
 
-    if (authorName?.includes("Ordem Masculina")) {
-      update.avatarUrl = PRESET_AVATARS[1].url;
+    if (authorName?.includes("Fulano disse")) {
+      update.avatarUrl = "/fulano_avatar.jpg";
+      update.isVerified = true;
+      update.showDots = true;
+      update.showWatermark = true;
+      update.watermarkText = "@fulanodisse";
+      update.themeStyle = "twitter_dark";
+      update.fontFamily = "sans";
+      update.fontSize = 64;
+      update.headerSpacing = 150;
+      update.avatarSize = 160;
+      update.nameFontSize = 54;
+      update.handleFontSize = 44;
+      update.badgeSize = 26;
+      update.badgeOffsetX = 26;
+      update.badgeOffsetY = 0;
+      update.dotsSize = 8;
+      update.dotsOffsetX = 50;
+      update.dotsOffsetY = 0;
+      update.verticalOffset = -225;
+      update.aspectRatio = "9:16";
+    } else if (authorName?.includes("Ordem Masculina")) {
+      update.avatarUrl = PRESET_AVATARS[2].url;
       update.isVerified = true;
       update.showDots = false;
       update.themeStyle = "twitter_dark";
     } else if (authorName?.includes("Chorar")) {
-      update.avatarUrl = PRESET_AVATARS[0].url;
+      update.avatarUrl = PRESET_AVATARS[1].url;
       update.isVerified = false;
       update.showDots = true;
       update.themeStyle = "twitter_dark";

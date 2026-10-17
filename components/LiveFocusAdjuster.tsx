@@ -323,10 +323,10 @@ export default function LiveFocusAdjuster({
                 <span>Altere o diâmetro do avatar circular no post:</span>
                 <button
                   type="button"
-                  onClick={() => onChange({ avatarSize: 100 })}
+                  onClick={() => onChange({ avatarSize: 160 })}
                   className="text-zinc-400 hover:text-white underline cursor-pointer p-1"
                 >
-                  Padrão (100px)
+                  Padrão (160px)
                 </button>
               </div>
 
@@ -350,10 +350,10 @@ export default function LiveFocusAdjuster({
                 <span>Ajuste a escala tipográfica do nome de exibição e @handle:</span>
                 <button
                   type="button"
-                  onClick={() => onChange({ nameFontSize: 36, handleFontSize: 30 })}
+                  onClick={() => onChange({ nameFontSize: 54, handleFontSize: 44 })}
                   className="text-zinc-400 hover:text-white underline cursor-pointer p-1"
                 >
-                  Padrão (36/30)
+                  Padrão (54/44)
                 </button>
               </div>
 
@@ -388,10 +388,10 @@ export default function LiveFocusAdjuster({
                 <span>Espaço vertical entre a figura/nomes e o texto da frase:</span>
                 <button
                   type="button"
-                  onClick={() => onChange({ headerSpacing: 54 })}
+                  onClick={() => onChange({ headerSpacing: 150 })}
                   className="text-zinc-400 hover:text-white underline cursor-pointer p-1"
                 >
-                  Padrão (54px)
+                  Padrão (150px)
                 </button>
               </div>
 
@@ -415,10 +415,10 @@ export default function LiveFocusAdjuster({
                 <span>Tamanho da frase principal e escolha de tipografia:</span>
                 <button
                   type="button"
-                  onClick={() => onChange({ fontSize: 44 })}
+                  onClick={() => onChange({ fontSize: 64 })}
                   className="text-zinc-400 hover:text-white underline cursor-pointer p-1"
                 >
-                  Padrão (44px)
+                  Padrão (64px)
                 </button>
               </div>
 
@@ -477,7 +477,7 @@ export default function LiveFocusAdjuster({
 
                 <button
                   type="button"
-                  onClick={() => onChange({ badgeSize: 14, badgeOffsetX: 0, badgeOffsetY: 0 })}
+                  onClick={() => onChange({ badgeSize: 26, badgeOffsetX: 26, badgeOffsetY: 0 })}
                   className="text-[10px] text-zinc-400 hover:text-white underline cursor-pointer p-1"
                 >
                   Resetar
@@ -545,7 +545,7 @@ export default function LiveFocusAdjuster({
 
                 <button
                   type="button"
-                  onClick={() => onChange({ dotsSize: 4, dotsOffsetX: 0, dotsOffsetY: 0 })}
+                  onClick={() => onChange({ dotsSize: 8, dotsOffsetX: 50, dotsOffsetY: 0 })}
                   className="text-[10px] text-zinc-400 hover:text-white underline cursor-pointer p-1"
                 >
                   Resetar
