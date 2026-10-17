@@ -17,7 +17,10 @@ import {
   BookOpen,
   Crown,
   History,
-  RotateCcw
+  RotateCcw,
+  Thermometer,
+  SlidersHorizontal,
+  Zap
 } from "lucide-react";
 import { GROQ_MODELS } from "@/lib/presets";
 
@@ -32,6 +35,8 @@ export default function GroqGeneratorPanel({
 }: GroqGeneratorPanelProps) {
   const [topic, setTopic] = useState("");
   const [style, setStyle] = useState<string>("melancolia");
+  // Default temperature: 0.90 for creative non-biblical styles, 0.15 for biblical
+  const [temperature, setTemperature] = useState<number>(0.90);
   const [model, setModel] = useState<string>("openai/gpt-oss-120b");
   const [apiKey, setApiKey] = useState<string>(() => {
     if (typeof window !== "undefined") {
@@ -59,6 +64,16 @@ export default function GroqGeneratorPanel({
     }
     return [];
   });
+
+  const handleSelectStyle = (newStyleId: string) => {
+    setStyle(newStyleId);
+    // When non-biblical, elevate temperature to 0.90; when biblical (salomao), set to 0.15 for strict accuracy
+    if (newStyleId === "salomao") {
+      setTemperature(0.15);
+    } else {
+      setTemperature(0.90);
+    }
+  };
 
   const handleSaveApiKey = (key: string) => {
     setApiKey(key);
@@ -115,7 +130,8 @@ export default function GroqGeneratorPanel({
           model,
           apiKey: apiKey.trim(),
           count: 3,
-          usedHistory: usedVersesCache
+          usedHistory: usedVersesCache,
+          temperature
         })
       });
 
@@ -245,7 +261,7 @@ export default function GroqGeneratorPanel({
           {styleOptions.map((opt) => (
             <button
               key={opt.id}
-              onClick={() => setStyle(opt.id)}
+              onClick={() => handleSelectStyle(opt.id)}
               className={`flex flex-col text-left p-2.5 rounded-xl border transition cursor-pointer min-h-[54px] justify-center ${
                 style === opt.id
                   ? "bg-zinc-800 border-orange-500/80 text-white shadow-sm ring-1 ring-orange-500/30"
@@ -368,6 +384,113 @@ export default function GroqGeneratorPanel({
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Dynamic Temperature Adjustment Controller */}
+      <div className="mb-4 bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/80 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+            <Thermometer className="w-3.5 h-3.5 text-orange-400" />
+            <span>Temperatura Dinâmica (Criatividade):</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-black border border-orange-500/40 text-orange-400">
+              {temperature.toFixed(2)}
+            </span>
+            <button
+              type="button"
+              onClick={() => setTemperature(style === "salomao" ? 0.15 : 0.90)}
+              className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1 px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition cursor-pointer active:scale-95"
+              title="Restaurar padrão sugerido para o estilo atual"
+            >
+              <RotateCcw className="w-2.5 h-2.5 text-zinc-400" />
+              <span>Resetar</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic Range Slider */}
+        <div className="space-y-1.5">
+          <input
+            type="range"
+            min="0.00"
+            max="1.50"
+            step="0.05"
+            value={temperature}
+            onChange={(e) => setTemperature(parseFloat(e.target.value))}
+            className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-orange-500 focus:outline-none"
+          />
+          <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono px-0.5">
+            <span>0.00 (Literal)</span>
+            <span>0.70</span>
+            <span className="text-orange-400 font-semibold">0.90 (Padrão)</span>
+            <span>1.50 (Ousado)</span>
+          </div>
+        </div>
+
+        {/* Dynamic Contextual Behavior Indicator */}
+        <div className="p-2 rounded-lg bg-zinc-950/70 border border-zinc-800/60 text-[11px] leading-relaxed">
+          {temperature <= 0.20 ? (
+            <div className="text-emerald-400 flex items-center gap-1.5">
+              <span>🎯</span>
+              <span>
+                <strong>0.00 - 0.20 (Ultra Preciso & Fiel)</strong>: Respostas canônicas estritas sem invenções. Recomendado para o estilo bíblico do Rei Salomão.
+              </span>
+            </div>
+          ) : temperature <= 0.60 ? (
+            <div className="text-sky-300 flex items-center gap-1.5">
+              <span>⚖️</span>
+              <span>
+                <strong>0.25 - 0.60 (Equilibrado & Coerente)</strong>: Textos estruturados com variação moderada e alta coerência.
+              </span>
+            </div>
+          ) : temperature <= 1.00 ? (
+            <div className="text-orange-300 flex items-center gap-1.5">
+              <span>🔥</span>
+              <span>
+                <strong>0.65 - 1.00 (Criativo & Ousado - Padrão 0.90)</strong>: Vocabulário rico, metáforas inéditas, ritmo visceral e sem clichês copiados.
+              </span>
+            </div>
+          ) : (
+            <div className="text-amber-300 flex items-center gap-1.5">
+              <span>⚡</span>
+              <span>
+                <strong>1.05 - 1.50 (Máxima Criatividade)</strong>: Frases experimentais, associações poéticas ousadas e surpreendentes.
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Calibration Preset Buttons */}
+        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+          <span className="text-[10px] text-zinc-400 flex items-center gap-1">
+            <SlidersHorizontal className="w-2.5 h-2.5 text-zinc-500" />
+            Calibração rápida:
+          </span>
+          {[
+            { val: 0.15, label: "0.15 Salomão", desc: "Fidelidade Bíblica" },
+            { val: 0.70, label: "0.70 Equilibrado", desc: "Equilibrado" },
+            { val: 0.90, label: "0.90 Criativo", desc: "Padrão Não-Bíblico" },
+            { val: 1.20, label: "1.20 Ousado", desc: "Alta Inovação" }
+          ].map((preset) => {
+            const isSelected = Math.abs(temperature - preset.val) < 0.03;
+            return (
+              <button
+                key={preset.val}
+                type="button"
+                onClick={() => setTemperature(preset.val)}
+                className={`text-[10px] px-2 py-0.5 rounded-md border transition cursor-pointer active:scale-95 ${
+                  isSelected
+                    ? "bg-orange-500/20 text-orange-300 border-orange-500/60 font-semibold shadow-xs"
+                    : "bg-zinc-900/80 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:border-zinc-700"
+                }`}
+                title={preset.desc}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Generate Action Button */}

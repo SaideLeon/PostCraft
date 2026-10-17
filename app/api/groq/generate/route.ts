@@ -72,7 +72,8 @@ export async function POST(req: NextRequest) {
       model = "openai/gpt-oss-120b",
       apiKey: clientKey = "",
       count = 1,
-      usedHistory = []
+      usedHistory = [],
+      temperature: clientTemperature
     } = body;
 
     const apiKey = clientKey?.trim() || process.env.GROQ_API_KEY;
@@ -85,19 +86,27 @@ export async function POST(req: NextRequest) {
           .filter((item) => item.length > 0)
       : [];
 
+    // Parse dynamic temperature if provided by user
+    const parsedClientTemp =
+      typeof clientTemperature === "number"
+        ? clientTemperature
+        : typeof clientTemperature === "string" && clientTemperature.trim() !== ""
+        ? parseFloat(clientTemperature)
+        : NaN;
+    const hasDynamicTemp = !isNaN(parsedClientTemp) && parsedClientTemp >= 0 && parsedClientTemp <= 2.0;
+
+    // Default temperatures:
+    // Biblical (Rei Salomão): 0.15 for canonical strictness
+    // Non-biblical: 0.90 (with top_p: 0.95) for high creativity and original metaphors
+    const defaultTemperature = isSalomao ? 0.15 : 0.90;
+    const effectiveTemperature = hasDynamicTemp ? parsedClientTemp : defaultTemperature;
+    const effectiveTopP = isSalomao ? 0.8 : 0.95;
+    const effectiveMaxTokens = isSalomao ? 512 : 1024;
+
     // Build system prompt based on style calibration
     let promptMessage = "";
-    // High temperature for non-biblical styles (maximum creativity, varied vocabulary, non-copycat originality)
-    let effectiveTemperature = 1.20;
-    let effectiveMaxTokens = 1024;
-    let effectiveTopP = 0.95;
 
     if (isSalomao) {
-      // King Solomon calibration: Low temperature (0.15), compressed tokens, zero tolerance for hallucinations
-      effectiveTemperature = 0.15;
-      effectiveMaxTokens = 512;
-      effectiveTopP = 0.8;
-
       let antiRepetitionSection = "";
       if (sanitizedHistory.length > 0) {
         antiRepetitionSection = `
@@ -129,10 +138,6 @@ ${antiRepetitionSection}
 
 [Texto do versículo fiel]`;
     } else {
-      // Non-biblical: High temperature (1.20) for maximum originality, unpredictability, and anti-copycat creativity
-      effectiveTemperature = 1.20;
-      effectiveTopP = 0.95;
-
       let toneDescription = "";
       switch (style) {
         case "melancolia":
@@ -254,9 +259,10 @@ DIRETRIZES ESTRITAS DE MÁXIMA CRIATIVIDADE (NÃO SEJA UM COPIADOR):
         phrases: phrases.length > 0 ? phrases : [rawResponse.trim()],
         source: "groq_api",
         modelUsed: selectedModel,
+        temperature: effectiveTemperature,
         note: isSalomao
-          ? `Versículos de Provérbios/Eclesiastes via Groq AI (${selectedModel}). Anti-repetição ativo.`
-          : undefined
+          ? `Versículos de Provérbios/Eclesiastes via Groq AI (${selectedModel}, Temp ${effectiveTemperature.toFixed(2)}). Anti-repetição ativo.`
+          : `Posts gerados via Groq AI (${selectedModel}, Temp ${effectiveTemperature.toFixed(2)}).`
       });
     } catch (groqError: any) {
       console.warn("Groq API error, attempting fallback model or curated phrase:", groqError?.message);
