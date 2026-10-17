@@ -15,6 +15,7 @@ export default function PostGallery({ onSelectPost, currentText }: PostGalleryPr
 
   const categories = [
     { id: "all", label: "Todos os Posts" },
+    { id: "Sabedoria de Salomão (Bíblico)", label: "Rei Salomão (Bíblico)" },
     { id: "Melancolia", label: "Chorar (Melancolia)" },
     { id: "Masculinidade & Realidade", label: "Ordem Masculina" },
     { id: "Conquista & Flerte", label: "Socialmente Sagaz" }

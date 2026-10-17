@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Sparkles,
   Bot,
@@ -13,7 +13,11 @@ import {
   AlertCircle,
   HelpCircle,
   Settings2,
-  Bookmark
+  Bookmark,
+  BookOpen,
+  Crown,
+  History,
+  RotateCcw
 } from "lucide-react";
 import { GROQ_MODELS } from "@/lib/presets";
 
@@ -43,10 +47,56 @@ export default function GroqGeneratorPanel({
   const [sourceNote, setSourceNote] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Anti-repetition verse cache loaded from localStorage
+  const [usedVersesCache, setUsedVersesCache] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("postcraft_used_verses_cache");
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
   const handleSaveApiKey = (key: string) => {
     setApiKey(key);
     try {
       localStorage.setItem("postcraft_groq_key", key.trim());
+    } catch {}
+  };
+
+  const extractIdentifier = (text: string): string => {
+    // Look for canonical book reference like "Provérbios 4:23", "Eclesiastes 3:1-2", "Provérbios 16:9"
+    const match = text.match(/(?:Provérbios|Eclesiastes)\s+\d+:\d+(?:-\d+)?/i);
+    if (match) {
+      return match[0].trim();
+    }
+    // Fallback: extract first non-empty line or first 50 chars
+    const firstLine = text.split("\n").find((l) => l.trim().length > 0) || "";
+    return firstLine.slice(0, 50).trim();
+  };
+
+  const addToHistoryCache = (newPhrases: string[]) => {
+    const newItems = newPhrases.map(extractIdentifier).filter(Boolean);
+    if (newItems.length === 0) return;
+
+    setUsedVersesCache((prev) => {
+      // Merge unique
+      const set = new Set([...prev, ...newItems]);
+      const updated = Array.from(set).slice(-50); // Keep last 50 verses in memory
+      try {
+        localStorage.setItem("postcraft_used_verses_cache", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleClearHistory = () => {
+    setUsedVersesCache([]);
+    try {
+      localStorage.removeItem("postcraft_used_verses_cache");
     } catch {}
   };
 
@@ -64,7 +114,8 @@ export default function GroqGeneratorPanel({
           style,
           model,
           apiKey: apiKey.trim(),
-          count: 3
+          count: 3,
+          usedHistory: usedVersesCache
         })
       });
 
@@ -72,6 +123,7 @@ export default function GroqGeneratorPanel({
 
       if (data.phrases && data.phrases.length > 0) {
         setGeneratedPhrases(data.phrases);
+        addToHistoryCache(data.phrases);
         // Automatically set the first phrase
         onSelectPhrase(data.phrases[0]);
 
@@ -91,6 +143,12 @@ export default function GroqGeneratorPanel({
   };
 
   const styleOptions = [
+    {
+      id: "salomao",
+      label: "Rei Salomão (Bíblico)",
+      tagline: "Provérbios & Eclesiastes reais (cap./vers.)",
+      icon: "👑"
+    },
     {
       id: "melancolia",
       label: "Chorar / Melancolia",
@@ -204,6 +262,69 @@ export default function GroqGeneratorPanel({
             </button>
           ))}
         </div>
+
+        {/* King Solomon high-fidelity banner with Anti-Repetition Cache */}
+        {style === "salomao" && (
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex flex-col gap-2.5 animate-fadeIn">
+            <div className="flex items-start gap-2.5">
+              <BookOpen className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5 leading-relaxed flex-1">
+                <span className="font-semibold text-amber-300 block">
+                  Calibração Rei Salomão (Sem invenções & Anti-repetição):
+                </span>
+                <p className="text-[11px] text-zinc-300">
+                  A IA é calibrada com baixa temperatura para não alucinar frases fictícias, buscando versículos reais de <strong>Provérbios</strong> ou <strong>Eclesiastes</strong> (máximo de 1 a 3 versículos com citação canônica exata).
+                </p>
+              </div>
+            </div>
+
+            {/* Anti-repetition Cache Status & Controls */}
+            <div className="pt-2 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+              <div className="flex items-center gap-1.5 text-amber-300 font-medium">
+                <History className="w-3.5 h-3.5 text-amber-400" />
+                <span>
+                  Cache anti-repetição ativo:{" "}
+                  <strong className="text-white bg-amber-900/40 px-1.5 py-0.5 rounded border border-amber-500/30 font-mono text-[10px]">
+                    {usedVersesCache.length}
+                  </strong>{" "}
+                  {usedVersesCache.length === 1 ? "versículo lembrado" : "versículos lembrados"}
+                </span>
+              </div>
+
+              {usedVersesCache.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearHistory}
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-950/80 hover:bg-amber-900 border border-amber-700/60 text-amber-200 hover:text-white transition cursor-pointer text-[10px] active:scale-95"
+                  title="Limpar memória do navegador de versículos já gerados"
+                >
+                  <RotateCcw className="w-3 h-3 text-amber-400" />
+                  <span>Resetar cache</span>
+                </button>
+              )}
+            </div>
+
+            {/* Chips of remembered verses from localStorage */}
+            {usedVersesCache.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] text-zinc-400">Evitando repetir:</span>
+                {usedVersesCache.slice(-6).map((verseRef, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-900/90 border border-amber-500/30 text-amber-200 font-mono shadow-sm"
+                  >
+                    {verseRef}
+                  </span>
+                ))}
+                {usedVersesCache.length > 6 && (
+                  <span className="text-[10px] text-zinc-500 italic">
+                    +{usedVersesCache.length - 6} anteriores
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Topic or Custom Idea */}
@@ -213,13 +334,19 @@ export default function GroqGeneratorPanel({
             <Sparkles className="w-3.5 h-3.5 text-orange-400" />
             Tema ou Palavras-chave (Opcional):
           </label>
-          <span className="text-[11px] text-zinc-400">Ex: solidão, lealdade, ex</span>
+          <span className="text-[11px] text-zinc-400">
+            {style === "salomao" ? "Ex: coração, tempo, ira, amigos" : "Ex: solidão, lealdade, ex"}
+          </span>
         </div>
         <input
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="Ex: 'ter medo de se apegar de novo', 'traição e respeito', 'flerte noturno'..."
+          placeholder={
+            style === "salomao"
+              ? "Ex: 'guarda o coração', 'tempo para todo propósito', 'ira dos tolos', 'domínio próprio'..."
+              : "Ex: 'ter medo de se apegar de novo', 'traição e respeito', 'flerte noturno'..."
+          }
           className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500/80 transition min-h-[42px]"
         />
       </div>

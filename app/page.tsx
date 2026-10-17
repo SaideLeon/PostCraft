@@ -133,7 +133,7 @@ export default function Home() {
       themeStyle: theme.themeStyle,
       fontFamily: theme.fontFamily,
       content: theme.sampleContent,
-      fontSize: theme.themeStyle === "quote_bold" ? 52 : 44
+      fontSize: theme.themeStyle === "quote_bold" ? 52 : (theme.id === "rei_salomao" ? 42 : 44)
     }));
   };
 
@@ -166,6 +166,19 @@ export default function Home() {
       update.fontSize = 52;
       update.showWatermark = true;
       update.watermarkText = "@socialmentesagaz";
+    } else if (
+      authorName?.includes("Salomão") ||
+      authorName?.includes("Provérbios") ||
+      authorName?.includes("Eclesiastes")
+    ) {
+      const salomaoAvatar =
+        PRESET_AVATARS.find((a) => a.id === "rei_salomao")?.url || PRESET_AVATARS[0].url;
+      update.avatarUrl = salomaoAvatar;
+      update.isVerified = true;
+      update.showDots = false;
+      update.themeStyle = "twitter_dark";
+      update.fontFamily = "serif";
+      update.fontSize = 42;
     }
 
     handleUpdateConfig(update);

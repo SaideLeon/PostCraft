@@ -43,6 +43,22 @@ const FALLBACK_PHRASES: Record<string, string[]> = {
     "Não conte os teus planos para quem só sabe contar derrotas. Trabalhe calado e deixe os resultados fazerem o barulho.",
     "A disciplina é a única ponte real entre quem você é hoje e o homem ou mulher que você prometeu se tornar.",
     "Seja tão focado no seu objetivo a ponto de não ter tempo nem energia para se importar com opiniões vazias."
+  ],
+  salomao: [
+    "Provérbios 4:23\n\nSobre tudo o que se deve guardar, guarda o teu coração, porque dele procedem as fontes da vida.",
+    "Eclesiastes 3:1-2\n\nTudo tem o seu tempo determinado, e há tempo para todo o propósito debaixo do céu:\nHá tempo de nascer, e tempo de morrer; tempo de plantar, e tempo de arrancar o que se plantou.",
+    "Provérbios 16:9\n\nO coração do homem planeja o seu caminho, mas o Senhor lhe dirige os passos.",
+    "Provérbios 27:17\n\nComo o ferro com o ferro se afia, assim o homem afia o rosto do seu amigo.",
+    "Eclesiastes 7:8-9\n\nMelhor é o fim das coisas do que o princípio delas; melhor é o paciente de espírito do que o altivo de espírito.\nNão te apresses no teu espírito a irar-te, porque a ira repousa no seio dos tolos.",
+    "Provérbios 15:1\n\nA resposta branda desvia o furor, mas a palavra dura suscita a ira.",
+    "Eclesiastes 9:11\n\nVi ainda debaixo do sol que não é dos ligeiros a carreira, nem dos fortes a batalha, nem dos sábios o pão... mas que o tempo e o acaso acontecem a todos.",
+    "Provérbios 25:28\n\nComo a cidade derribada, que não tem muros, assim é o homem que não tem domínio próprio.",
+    "Provérbios 3:5-6\n\nConfia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento.\nReconhece-o em todos os teus caminhos, e ele endireitará as tuas veredas.",
+    "Provérbios 22:1\n\nMais digno de ser escolhido é o bom nome do que as muitas riquezas; e a graça é melhor do que a prata e o ouro.",
+    "Provérbios 18:21\n\nA morte e a vida estão no poder da língua; o que bem a utiliza comerá do seu fruto.",
+    "Eclesiastes 1:2, 9\n\nVaidade de vaidades, diz o pregador; vaidade de vaidades, tudo é vaidade.\nO que foi, isso é o que há de ser; e o que se fez, isso se tornará a fazer; de modo que nada há de novo debaixo do sol.",
+    "Provérbios 16:32\n\nMelhor é o que tarda em irar-se do que o poderoso, e o que controla o seu ânimo do que aquele que toma uma cidade.",
+    "Provérbios 21:23\n\nO que guarda a sua boca e a sua língua guarda a sua alma das angústias."
   ]
 };
 
@@ -51,43 +67,99 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       topic = "",
-      style = "melancolia", // melancolia, masculinidade, conquista, indiretas, motivacao
+      style = "melancolia", // melancolia, masculinidade, conquista, indiretas, motivacao, salomao
       customInstructions = "",
       model = "openai/gpt-oss-120b",
       apiKey: clientKey = "",
-      count = 1
+      count = 1,
+      usedHistory = []
     } = body;
 
     const apiKey = clientKey?.trim() || process.env.GROQ_API_KEY;
+    const isSalomao = style === "salomao";
 
-    // Build system prompt based on the aesthetic and user-uploaded reference styles
-    let toneDescription = "";
-    switch (style) {
-      case "melancolia":
-        toneDescription =
-          "Estilo 'Chorar / @chorarr': Frases curtas, profundas, melancólicas, desabafos sobre amor não correspondido, decepção, solidão, exaustão emocional, sumiço repentino das pessoas, mágoa e frieza. Tom honesto, triste e identificável que gera alto compartilhamento em posts dark do Twitter/X.";
-        break;
-      case "masculinidade":
-        toneDescription =
-          "Estilo 'Ordem Masculina / @_ordemmasculina_': Frases diretas sobre maturidade masculina, estoicismo, relacionamentos modernos, lealdade, respeito, lições duras sobre a realidade, autossuficiência e não aceitar joguinhos ou manipulação. Tom firme, realista, sem filtros, no estilo clássico de conselho viral.";
-        break;
-      case "conquista":
-        toneDescription =
-          "Estilo 'Socialmente Sagaz / @socialmentesagaz': Frases magnéticas, sedutoras, provocativas, flerte inteligente e misterioso, perfeitas para abrir conversas ou postar em quotes entre aspas duplas.";
-        break;
-      case "indiretas":
-        toneDescription =
-          "Estilo indireta elegante: Frases cortantes e certeiras sobre decepção, amizades falsas, pessoas interesseiras, virar a página e amor próprio inabalável.";
-        break;
-      case "motivacao":
-        toneDescription =
-          "Estilo foco, disciplina e evolução pessoal: Frases sobre silêncio, esforço diário, visão a longo prazo e superação de obstáculos.";
-        break;
-      default:
-        toneDescription = "Posts reflexivos para redes sociais em tom dark e direto.";
-    }
+    // Clean and normalize previous history entries from client-side cache
+    const sanitizedHistory: string[] = Array.isArray(usedHistory)
+      ? usedHistory
+          .map((item) => String(item).trim())
+          .filter((item) => item.length > 0)
+      : [];
 
-    const promptMessage = `Você é um escritor especialista em posts virais no formato Twitter/X dark mode para redes sociais (Instagram, Threads, X).
+    // Build system prompt based on style calibration
+    let promptMessage = "";
+    let effectiveTemperature = 0.9;
+    let effectiveMaxTokens = 1024;
+    let effectiveTopP = 1.0;
+
+    if (isSalomao) {
+      // King Solomon calibration: Low temperature, compressed tokens, zero tolerance for hallucinations
+      effectiveTemperature = 0.15;
+      effectiveMaxTokens = 512;
+      effectiveTopP = 0.8;
+
+      let antiRepetitionSection = "";
+      if (sanitizedHistory.length > 0) {
+        antiRepetitionSection = `
+HISTÓRICO DE VERSÍCULOS JÁ GERADOS (CACHE ANTI-REPETIÇÃO DO USUÁRIO):
+${sanitizedHistory.slice(-25).map((v) => `- ${v}`).join("\n")}
+
+REGRA CRÍTICA ANTI-REPETIÇÃO:
+É TERMINANTEMENTE PROIBIDO repetir ou reaproveitar qualquer um dos versículos ou capítulos citados na lista acima. Você tem pleno conhecimento do que já foi gerado anteriormente. Busque versículos e capítulos DIFERENTES e INÉDITOS de Provérbios ou Eclesiastes que ainda não foram apresentados nesta sessão.`;
+      }
+
+      promptMessage = `Você é um erudito bíblico e especialista nos textos canônicos do Rei Salomão na Bíblia Sagrada.
+MISSÃO CRÍTICA E REGRA INEGOCIÁVEL:
+Você DEVE extrair versículos REAIS, LITERAIS E GENUÍNOS exclusivamente do LIVRO DE PROVÉRBIOS ou do LIVRO DE ECLESIASTES da Bíblia Sagrada em Português (tradução fiel clássica, como João Ferreira de Almeida).
+
+DIRETRIZES DE CALIBRAÇÃO RIGOROSA (SEM ALUCINAÇÕES):
+1. NÃO INVENTE NADA. Não crie provérbios fictícios, não parafraseie livremente e não adicione conselhos motivacionais modernos inventados. Cada palavra deve vir do texto bíblico autêntico de Salomão.
+2. CITAÇÃO COMPLETA DE CAPÍTULO E VERSÍCULO: Todo post DEVE conter no início a referência canônica exata (ex: 'Provérbios 4:23' ou 'Eclesiastes 3:1-2') seguida do texto do versículo.
+3. COMPRESSÃO MÁXIMA (MÁXIMO 3 VERSÍCULOS): Forneça de 1 a no máximo 3 versículos por post para manter o texto conciso, denso em sabedoria e perfeito para o leitor de redes sociais. Jamais exceda 3 versículos.
+4. TEMA SOLICITADO: ${
+        topic
+          ? `Busque versículos específicos de Provérbios ou Eclesiastes que tratem exatamente sobre "${topic}".`
+          : "Selecione versículos reais de altíssimo impacto sobre sabedoria, discernimento, prudência, tempo certo, domínio próprio ou retidão."
+      }
+${customInstructions ? `Instruções adicionais do usuário: ${customInstructions}` : ""}
+${antiRepetitionSection}
+5. Se for gerar mais de uma opção (${count}), separe cada opção estritamente com a tag: [SEPARADOR]
+6. SEM SAUDAÇÕES, sem introduções e sem comentários ("Aqui está:", "Amém", etc.). Apenas o texto bíblico com a citação formatada:
+[Nome do Livro Capítulo:Versículo]
+
+[Texto do versículo fiel]`;
+    } else {
+      let toneDescription = "";
+      switch (style) {
+        case "melancolia":
+          toneDescription =
+            "Estilo 'Chorar / @chorarr': Frases curtas, profundas, melancólicas, desabafos sobre amor não correspondido, decepção, solidão, exaustão emocional, sumiço repentino das pessoas, mágoa e frieza. Tom honesto, triste e identificável que gera alto compartilhamento em posts dark do Twitter/X.";
+          break;
+        case "masculinidade":
+          toneDescription =
+            "Estilo 'Ordem Masculina / @_ordemmasculina_': Frases diretas sobre maturidade masculina, estoicismo, relacionamentos modernos, lealdade, respeito, lições duras sobre a realidade, autossuficiência e não aceitar joguinhos ou manipulação. Tom firme, realista, sem filtros, no estilo clássico de conselho viral.";
+          break;
+        case "conquista":
+          toneDescription =
+            "Estilo 'Socialmente Sagaz / @socialmentesagaz': Frases magnéticas, sedutoras, provocativas, flerte inteligente e misterioso, perfeitas para abrir conversas ou postar em quotes entre aspas duplas.";
+          break;
+        case "indiretas":
+          toneDescription =
+            "Estilo indireta elegante: Frases cortantes e certeiras sobre decepção, amizades falsas, pessoas interesseiras, virar a página e amor próprio inabalável.";
+          break;
+        case "motivacao":
+          toneDescription =
+            "Estilo foco, disciplina e evolução pessoal: Frases sobre silêncio, esforço diário, visão a longo prazo e superação de obstáculos.";
+          break;
+        default:
+          toneDescription = "Posts reflexivos para redes sociais em tom dark e direto.";
+      }
+
+      let generalAntiRepetition = "";
+      if (sanitizedHistory.length > 0) {
+        generalAntiRepetition = `\n\nNÃO REPITA nenhuma destas frases ou temas já gerados recentemente no histórico:\n${sanitizedHistory.slice(-15).map((h) => `- ${h}`).join("\n")}`;
+      }
+
+      promptMessage = `Você é um escritor especialista em posts virais no formato Twitter/X dark mode para redes sociais (Instagram, Threads, X).
 Objetivo: Criar ${count} post(s) inédito(s), impactante(s) e autêntico(s).
 
 Diretrizes de estilo:
@@ -96,6 +168,7 @@ ${toneDescription}
 Tema / Detalhes específicos informados pelo usuário:
 ${topic ? `"${topic}"` : "Crie algo memorável dentro do estilo especificado."}
 ${customInstructions ? `Instruções adicionais: ${customInstructions}` : ""}
+${generalAntiRepetition}
 
 Regras estritas:
 1. Escreva em Português natural e fluente (pode usar tom de Portugal ou Brasil dependendo da concordância natural).
@@ -103,18 +176,40 @@ Regras estritas:
 3. Se for mais de uma frase ou continuação, separe com quebra de linha dupla (exemplo: uma reflexão, depois 'Duro? Não. Apenas a pura verdade.').
 4. Retorne apenas o texto das frases geradas. Se for gerar mais de uma, separe cada opção com a tag: [SEPARADOR]
 5. NÃO inclua saudações, nem introduções como "Aqui estão as frases:", apenas o conteúdo puro.`;
+    }
+
+    // Helper to pick items from fallback list excluding history items
+    const getFilteredFallbackItems = (numToPick: number): string[] => {
+      const fallbackList = FALLBACK_PHRASES[style] || FALLBACK_PHRASES.melancolia;
+      let pool = fallbackList;
+
+      if (sanitizedHistory.length > 0) {
+        const unused = fallbackList.filter((phrase) => {
+          const lower = phrase.toLowerCase();
+          return !sanitizedHistory.some((hist) => {
+            const lowerHist = hist.toLowerCase();
+            return lower.includes(lowerHist) || lowerHist.includes(lower.slice(0, 25));
+          });
+        });
+        if (unused.length >= numToPick) {
+          pool = unused;
+        }
+      }
+
+      const shuffled = [...pool].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, Math.min(numToPick, shuffled.length));
+    };
 
     if (!apiKey) {
       // If no Groq API Key is configured yet, provide curated high quality responses matching the requested vibe
-      const fallbackList = FALLBACK_PHRASES[style] || FALLBACK_PHRASES.melancolia;
-      // Pick random phrases
-      const shuffled = [...fallbackList].sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, Math.min(count, shuffled.length));
+      const selected = getFilteredFallbackItems(count);
 
       return NextResponse.json({
         phrases: selected,
         source: "curated_catalog",
-        note: "Para gerar frases inéditas em tempo real via Groq AI, configure sua chave GROQ_API_KEY ou insira no campo de configurações."
+        note: isSalomao
+          ? `Versículos autênticos de Provérbios e Eclesiastes (Cache anti-repetição ativo com ${sanitizedHistory.length} registros).`
+          : "Para gerar frases inéditas em tempo real via Groq AI, configure sua chave GROQ_API_KEY ou insira no campo de configurações."
       });
     }
 
@@ -133,9 +228,9 @@ Regras estritas:
           }
         ],
         model: selectedModel,
-        temperature: 0.9,
-        max_completion_tokens: 1024,
-        top_p: 1,
+        temperature: effectiveTemperature,
+        max_completion_tokens: effectiveMaxTokens,
+        top_p: effectiveTopP,
         stream: false
       });
 
@@ -152,7 +247,10 @@ Regras estritas:
       return NextResponse.json({
         phrases: phrases.length > 0 ? phrases : [rawResponse.trim()],
         source: "groq_api",
-        modelUsed: selectedModel
+        modelUsed: selectedModel,
+        note: isSalomao
+          ? `Versículos de Provérbios/Eclesiastes via Groq AI (${selectedModel}). Anti-repetição ativo.`
+          : undefined
       });
     } catch (groqError: any) {
       console.warn("Groq API error, attempting fallback model or curated phrase:", groqError?.message);
@@ -163,8 +261,9 @@ Regras estritas:
           const fallbackCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: promptMessage }],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.85,
-            max_completion_tokens: 1024
+            temperature: effectiveTemperature,
+            max_completion_tokens: effectiveMaxTokens,
+            top_p: effectiveTopP
           });
 
           const rawFallback = fallbackCompletion.choices[0]?.message?.content || "";
@@ -177,7 +276,9 @@ Regras estritas:
             phrases: phrasesFallback.length > 0 ? phrasesFallback : [rawFallback.trim()],
             source: "groq_api",
             modelUsed: "llama-3.3-70b-versatile",
-            note: `Modelo alternativo utilizado com sucesso.`
+            note: isSalomao
+              ? "Versículos autênticos de Provérbios/Eclesiastes via llama-3.3-70b-versatile com anti-repetição."
+              : "Modelo alternativo utilizado com sucesso."
           });
         } catch (innerErr) {
           // Fall through to catalog fallback
@@ -185,13 +286,14 @@ Regras estritas:
       }
 
       // If all API attempts fail (e.g. invalid key or network), gracefully return curated phrases with helpful warning
-      const fallbackList = FALLBACK_PHRASES[style] || FALLBACK_PHRASES.melancolia;
-      const shuffled = [...fallbackList].sort(() => 0.5 - Math.random());
+      const fallbackSelected = getFilteredFallbackItems(count);
       return NextResponse.json({
-        phrases: shuffled.slice(0, count),
+        phrases: fallbackSelected,
         source: "curated_catalog",
         error: groqError?.message || "Erro na chamada Groq",
-        note: "Exibindo frase do catálogo de alta conversão devido a instabilidade na API Groq."
+        note: isSalomao
+          ? "Versículos autênticos do catálogo bíblico (filtrado por anti-repetição)."
+          : "Exibindo frase do catálogo de alta conversão devido a instabilidade na API Groq."
       });
     }
   } catch (error: any) {
